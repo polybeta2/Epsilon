@@ -9,6 +9,7 @@ import com.github.epsilon.events.bus.listeners.ConsumerListener;
 import com.github.epsilon.events.impl.KeyboardInputEvent;
 import com.github.epsilon.events.impl.PacketEvent;
 import com.github.epsilon.events.impl.PlayerTickEvent;
+import com.github.epsilon.events.impl.SendPositionEvent;
 import com.github.epsilon.events.impl.Render3DEvent;
 import com.github.epsilon.graphics.schedulers.render3d.Render3DScheduler;
 import com.github.epsilon.managers.NotificationManager;
@@ -194,6 +195,7 @@ public class Scaffold extends Module {
 
     private int airTicks;
     private int yLevel;
+    private int towerMatrixState;
     private BlockPos blockPos;
     private Direction direction;
     private Rot2f rotation;
@@ -213,6 +215,7 @@ public class Scaffold extends Module {
     @Override
     protected void onEnable() {
         airTicks = 0;
+        towerMatrixState = 0;
         blockPos = null;
         direction = null;
         rotation = null;
@@ -302,6 +305,7 @@ public class Scaffold extends Module {
         if (isTowerActive()) {
             handleTowerMatrix();
         } else {
+            towerMatrixState = 0;
             switch (mode.getValue()) {
                 case TellyBridge -> handleTelly();
                 case GodBridge -> handleNormal();
@@ -317,19 +321,55 @@ public class Scaffold extends Module {
     }
 
     /**
-     * Tower（Matrix）状态机，移植自 Lyasim：起跳 → 落地 → 之后每 tick 把下落拉回 0.42
-     * 实现 Matrix 下的连续跳塔；旋转与放置沿用对准脚下的放置路径。
+     * Tower（Matrix）状态机，移植自 Lyasim：起跳 → 落地 → 之后每当垂直速度衰减到
+     * 0.19 以下就重新拉回 0.42，实现连续跳塔。旋转与放置沿用对准脚下的放置路径。
+     * 配套的 onGround 声明见 {@link #onSendPosition}。
      */
     private void handleTowerMatrix() {
         rotation = getRotation(blockPos, direction);
         RotationManager.INSTANCE.setRotations(rotation, rotationSpeed.getValue());
         boolean placed = place();
 
+        switch (towerMatrixState) {
+            case 0 -> {
+                if (!mc.player.onGround()) {
+                    towerMatrixState = 1;
+                }
+            }
+            case 1 -> {
+                if (mc.player.onGround()) {
+                    towerMatrixState = 2;
+                }
+            }
+            case 2 -> {
+                if (mc.player.onGround() || mc.player.getDeltaMovement().y < 0.19) {
+                    mc.player.setDeltaMovement(mc.player.getDeltaMovement().x, 0.42, mc.player.getDeltaMovement().z);
+                }
+            }
+        }
+
         if (towerDebug.getValue()) {
-            Constants.LOGGER.info("[Tower] y={} vy={} onAir={} pos={} placed={}",
+            Constants.LOGGER.info("[Tower] state={} y={} vy={} onAir={} pos={} placed={}",
+                    towerMatrixState,
                     String.format("%.4f", mc.player.getY()),
                     String.format("%.4f", mc.player.getDeltaMovement().y),
                     onAir(), blockPos, placed);
+        }
+    }
+
+    /**
+     * Tower（Matrix）的 ground 声明，逐项镜像 Lyasim 的 MotionEvent.setOnGround：
+     * 在慢速上升 tick（发包时 vy&lt;0.19）的移动包里声明 onGround=true，下一个 tick
+     * 的 0.42 加速随后被 Matrix 识别为"从地面起跳"。声明必须落在慢速 tick 的包上——
+     * 加速 tick 自身的包（+0.42 且 og=true）自相矛盾，会被 move.vert 拒绝。
+     */
+    @EventHandler
+    private void onSendPosition(SendPositionEvent event) {
+        if (towerMode.is(TowerMode.Matrix)
+                && towerMatrixState == 2
+                && !mc.player.onGround()
+                && mc.player.getDeltaMovement().y < 0.19) {
+            event.setOnGround(true);
         }
     }
 
