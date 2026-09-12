@@ -960,6 +960,7 @@
           "highest": "Highest"
         },
         "cps": "CPS",
+        "cps jitter": "CPS Jitter",
         "no double hit": {
           "_value": "No Double Hit",
           "cancel": "Cancel",

@@ -2,6 +2,7 @@ package com.github.epsilon.mixins;
 
 import com.github.epsilon.events.bus.EventBus;
 import com.github.epsilon.events.impl.*;
+import com.github.epsilon.modules.impl.combat.killaura.KillAura;
 import com.github.epsilon.modules.impl.movement.NoPacketSprint;
 import com.github.epsilon.modules.impl.movement.Velocity;
 import com.github.epsilon.modules.impl.player.InvManager;
@@ -133,10 +134,18 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
 
     @WrapOperation(method = "modifyInput", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z"))
     private boolean onSlowdown(LocalPlayer localPlayer, Operation<Boolean> original) {
-        SlowdownEvent event = EventBus.INSTANCE.post(new SlowdownEvent(original.call(localPlayer)));
+        // KillAura AutoBlock 的服务端格挡同样套用 1.8 使用物品减速（默认 0.2 倍率）
+        boolean usingOrBlocking = original.call(localPlayer) || KillAura.INSTANCE.isBlockingServerSide();
+        SlowdownEvent event = EventBus.INSTANCE.post(new SlowdownEvent(usingOrBlocking));
         epsilon$slowdownEvent = event;
         epsilon$slowdownUsing = event.isSlowdown();
         return event.isSlowdown();
+    }
+
+    @Inject(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;aiStep()V"))
+    private void noPacketSprintReassert(CallbackInfo ci) {
+        // 位于原版疾跑校验之后、travel 之前：任何来源的疾跑覆盖都在此被纠正
+        NoPacketSprint.INSTANCE.reassertAllDir();
     }
 
     @ModifyExpressionValue(method = "canStartSprinting", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/ClientInput;hasForwardImpulse()Z"))

@@ -960,6 +960,7 @@
           "highest": "最高"
         },
         "cps": "每秒点击数",
+        "cps jitter": "CPS 抖动",
         "no double hit": {
           "_value": "防双击",
           "cancel": "取消",

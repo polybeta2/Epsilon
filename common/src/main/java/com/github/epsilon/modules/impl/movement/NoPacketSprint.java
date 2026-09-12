@@ -47,4 +47,21 @@ public class NoPacketSprint extends Module {
         return Math.abs(moveVector.x) > 1.0E-5F || Math.abs(moveVector.y) > 1.0E-5F;
     }
 
+    /**
+     * AllDir 自愈式重申：原版校验、碰撞、其他模块（如 Player.attack 的攻击减速、
+     * Scaffold Telly 的贴墙移动）都可能把疾跑改掉。在原版校验之后、travel 之前
+     * 重新拉起疾跑，保证任何来源的覆盖都会被纠正。
+     * 由 MixinLocalPlayer 在 aiStep 调用 super.aiStep() 前调用。
+     */
+    public void reassertAllDir() {
+        if (!isEnabled() || !allDir.getValue()) return;
+        if (mc.player.isUsingItem()) return;          // 进食/拉弓等客户端使用中交给原版与 NoSlowdown
+        if (mc.player.horizontalCollision) return;    // 碰撞 tick 保留原版停车判定
+        if (!shouldKeepSprint()) return;              // 无移动输入不强制
+
+        if (!mc.player.isSprinting()) {
+            mc.player.setSprinting(true);
+        }
+    }
+
 }

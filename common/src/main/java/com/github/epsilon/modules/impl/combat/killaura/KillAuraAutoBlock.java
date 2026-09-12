@@ -127,6 +127,15 @@ class KillAuraAutoBlock {
     }
 
     /**
+     * 服务端视角当前是否处于格挡状态；供减速链路套用 1.8 格挡减速。
+     */
+    boolean isServerBlocking() {
+        return aura.isEnabled()
+                && !aura.autoBlockMode.is(KillAura.AutoBlockMode.None)
+                && blockingState;
+    }
+
+    /**
      * 收格挡并清除全部状态；服务端仍认为格挡中时先补发释放包。
      */
     void reset() {

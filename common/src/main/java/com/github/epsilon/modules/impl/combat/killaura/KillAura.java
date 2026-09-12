@@ -38,6 +38,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.util.Mth;
 
 import java.awt.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class KillAura extends Module {
 
@@ -105,6 +106,7 @@ public class KillAura extends Module {
     private final IntSetting rotationSpeed = intSetting("Rotation Speed", 180, 10, 180, 10);
     private final EnumSetting<Priority> rotationPriority = enumSetting("Rotation Priority", Priority.High);
     private final IntSetting cps = intSetting("CPS", 12, 1, 20, 1, () -> mode.is(Mode.OnePointEight));
+    private final IntSetting cpsJitter = intSetting("CPS Jitter", 25, 0, 100, 5, () -> mode.is(Mode.OnePointEight) && cps.getValue() > 1);
     private final EnumSetting<NoDoubleHitMode> noDoubleHit = enumSetting("No Double Hit", NoDoubleHitMode.Cancel);
     private final IntSetting hurtTime = intSetting("Hurt Time", 20, 0, 20, 1);
     final EnumSetting<AutoBlockMode> autoBlockMode = enumSetting("Auto Block", AutoBlockMode.None);
@@ -316,12 +318,22 @@ public class KillAura extends Module {
             }
             case OnePointEight -> {
                 long time = System.currentTimeMillis();
-                if (time - lastAttackTime >= (long) (1000.0 / cps.getValue())) {
+                // 每次评估在基础间隔上叠加 ±Jitter% 的随机偏移，避免攻击节奏收敛为稳定值
+                long interval = (long) (1000.0 / cps.getValue());
+                double jitter = 1.0 + ThreadLocalRandom.current().nextInt(-cpsJitter.getValue(), cpsJitter.getValue() + 1) / 100.0;
+                if (time - lastAttackTime >= (long) (interval * jitter)) {
                     attacks++;
                     lastAttackTime = time;
                 }
             }
         }
+    }
+
+    /**
+     * AutoBlock 当前是否让服务端认为玩家处于格挡状态；供减速链路套用 1.8 格挡减速。
+     */
+    public boolean isBlockingServerSide() {
+        return autoBlock.isServerBlocking();
     }
 
     private void resetState() {
