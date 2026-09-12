@@ -2,13 +2,17 @@ package com.github.epsilon.modules.impl.player;
 
 import com.github.epsilon.events.bus.EventHandler;
 import com.github.epsilon.events.impl.PlayerTickEvent;
+import com.github.epsilon.managers.rotation.RotationManager;
 import com.github.epsilon.modules.Category;
 import com.github.epsilon.modules.Module;
 import com.github.epsilon.settings.impl.BoolSetting;
+import com.github.epsilon.settings.impl.EnumSetting;
 import com.github.epsilon.settings.impl.IntSetting;
 import com.github.epsilon.utils.math.MathUtils;
 import com.github.epsilon.utils.player.ClickSlotUtils;
 import com.github.epsilon.utils.player.InvHelper;
+import com.github.epsilon.utils.rotation.Priority;
+import com.github.epsilon.utils.rotation.Rot2f;
 import com.github.epsilon.utils.timer.TimerUtils;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -29,11 +33,18 @@ public class Stealer extends Module {
         super("Stealer", Category.PLAYER);
     }
 
+    private enum MoveMode {
+        QuickMove,
+        Throw
+    }
+
     private final IntSetting minDelay = intSetting("Min Delay", 110, 0, 1000, 50);
     private final IntSetting maxDelay = intSetting("Max Delay", 140, 0, 1000, 50);
     private final BoolSetting autoClose = boolSetting("Auto Close", true);
     private final IntSetting closeDelay = intSetting("Close Delay", 100, 0, 1000, 1, autoClose::getValue);
     private final BoolSetting pickEnderChest = boolSetting("Ender Chest", false);
+    private final EnumSetting<MoveMode> moveMode = enumSetting("Move Mode", MoveMode.QuickMove);
+    private final BoolSetting lookDown = boolSetting("Look Down", true, () -> moveMode.is(MoveMode.Throw));
 
     private Screen lastTickScreen;
 
@@ -164,7 +175,13 @@ public class Stealer extends Module {
                         for (Integer pSlotId : slots) {
                             ItemStack stack = menu.getSlot(pSlotId).getItem();
                             if (isItemUseful(stack) && isBestItemInChest(menu, stack) && timer.passedMillise(nextDelay)) {
-                                ClickSlotUtils.shiftClick(menu.containerId, pSlotId);
+                                if (moveMode.is(MoveMode.Throw)) {
+                                    // Throw 模式：把有用物品丢出箱子，垃圾留在箱内
+                                    ClickSlotUtils.dropAll(menu.containerId, pSlotId);
+                                    requestThrowRotation();
+                                } else {
+                                    ClickSlotUtils.shiftClick(menu.containerId, pSlotId);
+                                }
                                 timer.reset();
                                 if (nextDelay > 0) {
                                     break;
@@ -177,6 +194,17 @@ public class Stealer extends Module {
         }
 
         this.lastTickScreen = currentScreen;
+    }
+
+    /**
+     * 丢弃时静默低头 90°，让物品落在脚边而不是飞远。
+     * 旋转只写入发包的 yaw/pitch，不影响本地视角。
+     */
+    private void requestThrowRotation() {
+        if (!lookDown.getValue()) {
+            return;
+        }
+        RotationManager.INSTANCE.setRotations(new Rot2f(mc.player.getYRot(), 90.0f), 10.0, Priority.Lowest);
     }
 
     private boolean isChestEmpty(ChestMenu menu) {
