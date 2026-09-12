@@ -17,7 +17,17 @@ import static com.github.epsilon.Constants.mc;
 
 public abstract class RotationManager {
 
-    public static RotationManager INSTANCE;
+    /**
+     * 默认 SILENT 实例：配置里没有 rotationMode 键时 setValue/onChanged 不会触发，
+     * 若允许 INSTANCE 为 null，任何在首次切换前请求旋转的模块（如 Scaffold Telly）都会 NPE。
+     */
+    public static RotationManager INSTANCE = createDefault();
+
+    private static RotationManager createDefault() {
+        RotationManager manager = new SilentRotationManager();
+        EventBus.INSTANCE.subscribe(manager);
+        return manager;
+    }
 
     public enum RotationMode {
         SILENT,

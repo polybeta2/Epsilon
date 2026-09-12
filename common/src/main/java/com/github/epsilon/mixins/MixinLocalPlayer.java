@@ -139,9 +139,18 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
         return event.isSlowdown();
     }
 
+    @ModifyExpressionValue(method = "canStartSprinting", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/ClientInput;hasForwardImpulse()Z"))
+    private boolean noPacketSprintAllDirStart(boolean original) {
+        // AllDir 启动侧：侧移/后退时也允许疾跑启动（仍受 isSprintingPossible、使用物品等原版条件约束）
+        if (!original && NoPacketSprint.INSTANCE.shouldKeepSprint()) {
+            return true;
+        }
+        return original;
+    }
+
     @ModifyExpressionValue(method = "shouldStopRunSprinting", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/ClientInput;hasForwardImpulse()Z"))
-    private boolean noPacketSprintAllDir(boolean original) {
-        // AllDir：仅当前向判定本身为假时才需要补；仍要求玩家处于移动状态，与原版"静止停疾跑"一致
+    private boolean noPacketSprintAllDirKeep(boolean original) {
+        // AllDir 维持侧：仅当前向判定本身为假时才需要补；仍要求玩家处于移动状态，与原版"静止停疾跑"一致
         if (!original && NoPacketSprint.INSTANCE.shouldKeepSprint()) {
             return true;
         }
