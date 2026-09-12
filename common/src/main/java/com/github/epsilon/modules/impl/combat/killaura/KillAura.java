@@ -88,7 +88,8 @@ public class KillAura extends Module {
 
     enum AutoBlockMode {
         None,
-        Matrix
+        Matrix,
+        Matrix1_12
     }
 
     private final BoolSetting pauseOnEat = boolSetting("Pause On Eat", true);
@@ -107,7 +108,9 @@ public class KillAura extends Module {
     private final EnumSetting<NoDoubleHitMode> noDoubleHit = enumSetting("No Double Hit", NoDoubleHitMode.Cancel);
     private final IntSetting hurtTime = intSetting("Hurt Time", 20, 0, 20, 1);
     final EnumSetting<AutoBlockMode> autoBlockMode = enumSetting("Auto Block", AutoBlockMode.None);
-    final DoubleSetting blockRange = doubleSetting("Block Range", 4.0, 1.0, 6.0, 0.1, () -> autoBlockMode.is(AutoBlockMode.Matrix));
+    final DoubleSetting blockRange = doubleSetting("Block Range", 4.0, 1.0, 6.0, 0.1, () -> !autoBlockMode.is(AutoBlockMode.None));
+    final BoolSetting interactAutoBlock = boolSetting("Interact Auto Block", true, () -> autoBlockMode.is(AutoBlockMode.Matrix1_12));
+    final BoolSetting autoBlockDebug = boolSetting("Debug", false, () -> !autoBlockMode.is(AutoBlockMode.None));
 
     final BoolSetting players = boolSetting("Players", true);
     final BoolSetting mobs = boolSetting("Mobs", true);
@@ -222,10 +225,17 @@ public class KillAura extends Module {
                     break;
                 }
 
+                // Matrix1.12：释放盾并跳过本次攻击，下一 tick 再打（两 tick 状态机）
+                if (autoBlock.skipTickForMatrix112()) {
+                    attacks++;
+                    break;
+                }
+
                 // Matrix AutoBlock：释放盾 → 攻击 → 补盾，攻击到达服务端时不处于格挡状态
                 boolean wasBlocking = autoBlock.beginAttack();
                 mc.gameMode.attack(mc.player, entity);
                 autoBlock.endAttack(wasBlocking);
+                autoBlock.postAttack(entity);
 
                 if (espMode.is(ESPMode.Deobf)) DeobfESP.markHit(entity);
 

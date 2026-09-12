@@ -970,9 +970,12 @@
         "auto block": {
           "_value": "Auto Block",
           "none": "None",
-          "matrix": "Matrix"
+          "matrix": "Matrix",
+          "matrix1_12": "Matrix 1.12"
         },
         "block range": "Block Range",
+        "interact auto block": "Interact Auto Block",
+        "debug": "Debug",
         "players": "Players",
         "mobs": "Mobs",
         "animals": "Animals",

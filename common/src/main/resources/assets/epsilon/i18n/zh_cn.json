@@ -970,9 +970,12 @@
         "auto block": {
           "_value": "自动举盾",
           "none": "关闭",
-          "matrix": "Matrix"
+          "matrix": "Matrix",
+          "matrix1_12": "Matrix 1.12"
         },
         "block range": "举盾范围",
+        "interact auto block": "交互维持",
+        "debug": "调试",
         "players": "玩家",
         "mobs": "怪物",
         "animals": "动物",
