@@ -1848,7 +1848,8 @@
           "_value": "塔搭",
           "none": "关闭",
           "matrix": "Matrix"
-        }
+        },
+        "debug": "调试"
       },
       "speed": {
         "_value": "速度",

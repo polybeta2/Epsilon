@@ -1848,7 +1848,8 @@
           "_value": "Tower",
           "none": "None",
           "matrix": "Matrix"
-        }
+        },
+        "debug": "Debug"
       },
       "speed": {
         "_value": "Speed",

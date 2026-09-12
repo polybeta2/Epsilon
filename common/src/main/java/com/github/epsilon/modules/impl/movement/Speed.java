@@ -272,7 +272,10 @@ public class Speed extends Module {
 
             if (mc.player.onGround()) {
                 mc.player.jumpFromGround();
-                double[] motion = MoveUtils.forward(hspeed);
+                // 速度取 jumpFromGround 之后的值（含疾跑跳 0.2 助推），
+                // 丢失助推会让起跳 tick 的水平位移不符合原版疾跑跳特征而被检测
+                double boostedSpeed = Math.hypot(mc.player.getDeltaMovement().x, mc.player.getDeltaMovement().z);
+                double[] motion = MoveUtils.forward(boostedSpeed);
                 event.setX(motion[0]);
                 event.setZ(motion[1]);
                 event.setY(mc.player.getDeltaMovement().y);

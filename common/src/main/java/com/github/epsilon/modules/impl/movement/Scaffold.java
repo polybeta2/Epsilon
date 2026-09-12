@@ -1,5 +1,6 @@
 package com.github.epsilon.modules.impl.movement;
 
+import com.github.epsilon.Constants;
 import com.github.epsilon.assets.i18n.EpsilonTranslations;
 import com.github.epsilon.events.bus.EventBus;
 import com.github.epsilon.events.bus.EventHandler;
@@ -181,6 +182,7 @@ public class Scaffold extends Module {
     private final IntSetting rotationBackSpeed = intSetting("Rotation Back Speed", 180, 10, 180, 10, () -> mode.is(Mode.TellyBridge));
     private final IntSetting tellyTicks = intSetting("Telly Ticks", 1, 0, 6, 1, () -> mode.is(Mode.TellyBridge));
     private final EnumSetting<TowerMode> towerMode = enumSetting("Tower", TowerMode.None);
+    private final BoolSetting towerDebug = boolSetting("Debug", false, () -> !towerMode.is(TowerMode.None));
 
     private final BoolSetting swingHand = boolSetting("Swing Hand", true);
     private final BoolSetting render = boolSetting("Render", true);
@@ -342,7 +344,14 @@ public class Scaffold extends Module {
 
         rotation = getRotation(blockPos, direction);
         RotationManager.INSTANCE.setRotations(rotation, rotationSpeed.getValue());
-        place();
+        boolean placed = place();
+        if (towerDebug.getValue()) {
+            Constants.LOGGER.info("[Tower] state={} y={} vy={} onAir={} pos={} placed={}",
+                    towerMatrixState,
+                    String.format("%.2f", mc.player.getY()),
+                    String.format("%.3f", mc.player.getDeltaMovement().y),
+                    onAir(), blockPos, placed);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -438,16 +447,16 @@ public class Scaffold extends Module {
         place();
     }
 
-    private void place() {
+    private boolean place() {
         if (!onAir() || blockPos == null || direction == null || !canUseBlockResult()) {
-            return;
+            return false;
         }
 
         if (switch (raytrace.getValue()) {
             case Normal -> !RaytraceUtils.overBlock(RotationManager.INSTANCE.getRotation(), blockPos);
             case Strict -> !RaytraceUtils.overBlock(RotationManager.INSTANCE.getRotation(), blockPos, direction);
         }) {
-            return;
+            return false;
         }
 
         swap();
@@ -469,6 +478,7 @@ public class Scaffold extends Module {
         }
 
         swapBack();
+        return true;
     }
 
     private int getYLevel() {
