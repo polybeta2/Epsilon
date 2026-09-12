@@ -73,6 +73,7 @@ public class ModuleManager {
         addModule(ZealotCrystalPlus.INSTANCE);
 
         // Player
+        addModule(AntiVoid.INSTANCE);
         addModule(AutoArmor.INSTANCE);
         addModule(AutoCrossbowRelease.INSTANCE);
         addModule(AutoFirework.INSTANCE);
