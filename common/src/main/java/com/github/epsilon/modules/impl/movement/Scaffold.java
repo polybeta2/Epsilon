@@ -9,6 +9,7 @@ import com.github.epsilon.events.bus.listeners.ConsumerListener;
 import com.github.epsilon.events.impl.KeyboardInputEvent;
 import com.github.epsilon.events.impl.PacketEvent;
 import com.github.epsilon.events.impl.PlayerTickEvent;
+import com.github.epsilon.events.impl.SendPositionEvent;
 import com.github.epsilon.events.impl.Render3DEvent;
 import com.github.epsilon.graphics.schedulers.render3d.Render3DScheduler;
 import com.github.epsilon.managers.NotificationManager;
@@ -195,6 +196,7 @@ public class Scaffold extends Module {
     private int airTicks;
     private int yLevel;
     private int towerMatrixState;
+    private boolean towerBoostPending;
     private BlockPos blockPos;
     private Direction direction;
     private Rot2f rotation;
@@ -238,6 +240,7 @@ public class Scaffold extends Module {
 
     @EventHandler
     private void onPlayerTick(PlayerTickEvent.Pre event) {
+        towerBoostPending = false;
         if (!event.isCancelled()) emergencyPlacementActive = false;
 
         blockResult = findBlockResult();
@@ -340,10 +343,13 @@ public class Scaffold extends Module {
                 }
             }
             case 2 -> {
-                // 空中重升仅在本 tick 成功放置方块后进行——"从新方块起跳"才有合法依据，
-                // 无放置的空中加速会被 Matrix 的 move.vert 检出（air_bst/air_mdf）
-                if (mc.player.onGround() || (placed && mc.player.getDeltaMovement().y < 0.19)) {
+                if (mc.player.onGround()) {
                     mc.player.setDeltaMovement(mc.player.getDeltaMovement().x, 0.42, mc.player.getDeltaMovement().z);
+                } else if (mc.player.getDeltaMovement().y < 0.19) {
+                    // Loftily MatrixTower 的关键：空中重升的同时在位置包里声称 onGround=true，
+                    // Matrix 将其识别为"从地面起跳"而非空中加速
+                    mc.player.setDeltaMovement(mc.player.getDeltaMovement().x, 0.42, mc.player.getDeltaMovement().z);
+                    towerBoostPending = true;
                 }
             }
         }
@@ -354,6 +360,18 @@ public class Scaffold extends Module {
                     String.format("%.2f", mc.player.getY()),
                     String.format("%.3f", mc.player.getDeltaMovement().y),
                     onAir(), blockPos, placed);
+        }
+    }
+
+    /**
+     * Tower 空中重升 tick 的位置包 onGround 声明：与 motionY=0.42 配对，
+     * Matrix 将该 tick 识别为"从地面起跳"（Loftily MatrixTower 的 setOnGround 语义）。
+     */
+    @EventHandler
+    private void onSendPosition(SendPositionEvent event) {
+        if (towerBoostPending) {
+            event.setOnGround(true);
+            towerBoostPending = false;
         }
     }
 
