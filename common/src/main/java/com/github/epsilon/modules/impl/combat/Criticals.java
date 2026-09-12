@@ -3,11 +3,14 @@ package com.github.epsilon.modules.impl.combat;
 import com.github.epsilon.modules.impl.combat.killaura.KillAura;
 import com.github.epsilon.events.bus.EventHandler;
 import com.github.epsilon.events.bus.EventPriority;
+import com.github.epsilon.events.impl.AttackEntityEvent;
 import com.github.epsilon.events.impl.ClientTickEvent;
 import com.github.epsilon.events.impl.KeyboardInputEvent;
 import com.github.epsilon.modules.Category;
 import com.github.epsilon.modules.Module;
 import com.github.epsilon.modules.impl.movement.Velocity;
+import com.github.epsilon.settings.impl.BoolSetting;
+import net.minecraft.world.entity.LivingEntity;
 
 public class Criticals extends Module {
 
@@ -17,6 +20,13 @@ public class Criticals extends Module {
         super("Criticals", Category.COMBAT);
     }
 
+    /**
+     * Loftily JumpCriticals 的移植：每次攻击（手动或 KillAura）时若在地面则自动跳跃，
+     * 使后续的攻击在落弧中命中而触发暴击；与 KillAura 的 No Double Hit 配合
+     * 形成"地面命中 → 跳 → 空中暴击"的节奏。
+     */
+    private final BoolSetting autoJump = boolSetting("Auto Jump", false);
+
     public int fallTicks;
     private boolean stopSprinting;
 
@@ -24,6 +34,15 @@ public class Criticals extends Module {
     protected void onDisable() {
         fallTicks = 0;
         stopSprinting = false;
+    }
+
+    @EventHandler
+    private void onAttack(AttackEntityEvent event) {
+        if (!autoJump.getValue() || nullCheck()) return;
+
+        if (event.getEntity() instanceof LivingEntity && mc.player.onGround()) {
+            mc.player.jumpFromGround();
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

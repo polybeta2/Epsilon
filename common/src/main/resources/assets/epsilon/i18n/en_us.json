@@ -860,7 +860,10 @@
         "mace": "Mace",
         "trident": "Trident"
       },
-      "criticals": "Criticals",
+      "criticals": {
+        "_value": "Criticals",
+        "auto jump": "Auto Jump"
+      },
       "crystal aura": {
         "_value": "Crystal Aura",
         "activate key": "Activate Key",
@@ -1388,6 +1391,14 @@
         "moving length": "Moving Length",
         "fade length": "Fade Length"
       },
+      "anti void": {
+        "_value": "Anti Void",
+        "mode": {
+          "_value": "Mode",
+          "ghostblock": "Ghost Block"
+        },
+        "void level": "Void Level"
+      },
       "auto armor": {
         "_value": "Auto Armor",
         "head": {
@@ -1626,7 +1637,13 @@
         "max delay": "Max Delay",
         "auto close": "Auto Close",
         "close delay": "Close Delay",
-        "ender chest": "Ender Chest"
+        "ender chest": "Ender Chest",
+        "move mode": {
+          "_value": "Move Mode",
+          "quickmove": "Quick Move",
+          "throw": "Throw"
+        },
+        "look down": "Look Down"
       },
       "timer": {
         "_value": "Timer",

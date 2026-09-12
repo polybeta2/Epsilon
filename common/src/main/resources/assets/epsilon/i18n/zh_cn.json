@@ -860,7 +860,10 @@
         "mace": "仅在重锤上交换",
         "trident": "仅在三叉戟上交换"
       },
-      "criticals": "刀暴",
+      "criticals": {
+        "_value": "刀暴",
+        "auto jump": "自动跳跃"
+      },
       "crystal aura": {
         "_value": "水晶光环",
         "activate key": "激活按键",
@@ -1388,6 +1391,14 @@
         "moving length": "移动时长",
         "fade length": "淡出时长"
       },
+      "anti void": {
+        "_value": "防虚空",
+        "mode": {
+          "_value": "模式",
+          "ghostblock": "幽灵方块"
+        },
+        "void level": "虚空高度"
+      },
       "auto armor": {
         "_value": "自动穿甲",
         "head": {
@@ -1626,7 +1637,13 @@
         "max delay": "最大延迟",
         "auto close": "自动关闭",
         "close delay": "关闭延迟",
-        "ender chest": "末影箱"
+        "ender chest": "末影箱",
+        "move mode": {
+          "_value": "移动方式",
+          "quickmove": "快速移动",
+          "throw": "丢弃"
+        },
+        "look down": "低头"
       },
       "timer": {
         "_value": "变速",
