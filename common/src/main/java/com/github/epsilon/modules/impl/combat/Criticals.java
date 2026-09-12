@@ -8,6 +8,7 @@ import com.github.epsilon.events.impl.ClientTickEvent;
 import com.github.epsilon.events.impl.KeyboardInputEvent;
 import com.github.epsilon.modules.Category;
 import com.github.epsilon.modules.Module;
+import com.github.epsilon.modules.impl.movement.NoPacketSprint;
 import com.github.epsilon.modules.impl.movement.Velocity;
 import com.github.epsilon.settings.impl.BoolSetting;
 import net.minecraft.world.entity.LivingEntity;
@@ -56,7 +57,9 @@ public class Criticals extends Module {
 
     @EventHandler(priority = EventPriority.LOWEST)
     private void prepareSprintStop(ClientTickEvent.Pre event) {
+        // NoPacketSprint 开启时服务端始终认为玩家未疾跑，命中本就无疾跑效果，无需停止
         stopSprinting = !nullCheck()
+                && !NoPacketSprint.INSTANCE.isEnabled()
                 && fallTicks > 0
                 && fallTicks < 3
                 && mc.player.isSprinting()
