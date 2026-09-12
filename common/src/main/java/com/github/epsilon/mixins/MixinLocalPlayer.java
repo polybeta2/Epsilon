@@ -2,13 +2,16 @@ package com.github.epsilon.mixins;
 
 import com.github.epsilon.events.bus.EventBus;
 import com.github.epsilon.events.impl.*;
+import com.github.epsilon.modules.impl.movement.NoPacketSprint;
 import com.github.epsilon.modules.impl.movement.Velocity;
 import com.github.epsilon.modules.impl.player.InvManager;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.player.ClientInput;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.MoverType;
@@ -27,8 +30,15 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     @Shadow
     protected int sprintTriggerTime;
 
+    @Shadow
+    public ClientInput input;
+
     @Unique
     private SendPositionEvent epsilon$sendPositionEvent;
+    @Unique
+    private SlowdownEvent epsilon$slowdownEvent;
+    @Unique
+    private boolean epsilon$slowdownUsing;
 
     protected MixinLocalPlayer(ClientLevel level, GameProfile gameProfile) {
         super(level, gameProfile);
@@ -124,7 +134,31 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     @WrapOperation(method = "modifyInput", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z"))
     private boolean onSlowdown(LocalPlayer localPlayer, Operation<Boolean> original) {
         SlowdownEvent event = EventBus.INSTANCE.post(new SlowdownEvent(original.call(localPlayer)));
+        epsilon$slowdownEvent = event;
+        epsilon$slowdownUsing = event.isSlowdown();
         return event.isSlowdown();
+    }
+
+    @ModifyExpressionValue(method = "shouldStopRunSprinting", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/ClientInput;hasForwardImpulse()Z"))
+    private boolean noPacketSprintAllDir(boolean original) {
+        // AllDir：仅当前向判定本身为假时才需要补；仍要求玩家处于移动状态，与原版"静止停疾跑"一致
+        if (!original && NoPacketSprint.INSTANCE.shouldKeepSprint()) {
+            return true;
+        }
+        return original;
+    }
+
+    @WrapOperation(method = "modifyInput", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;itemUseSpeedMultiplier()F"))
+    private float modifySlowdownMultiplier(LocalPlayer localPlayer, Operation<Float> original) {
+        // isUsingItem 与 itemUseSpeedMultiplier 在同一 modifyInput 调用中先后触发，
+        // 若本次没有发布 SlowdownEvent 则沿用物品自身的倍率
+        SlowdownEvent event = epsilon$slowdownEvent;
+        if (event != null && epsilon$slowdownUsing && event.hasMultiplier()) {
+            epsilon$slowdownEvent = null;
+            epsilon$slowdownUsing = false;
+            return event.getMultiplier();
+        }
+        return original.call(localPlayer);
     }
 
     @Inject(method = "move", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/AbstractClientPlayer;move(Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)V"), cancellable = true)

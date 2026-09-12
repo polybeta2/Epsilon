@@ -85,6 +85,7 @@ public class ModuleManager {
         addModule(ElytraSwap.INSTANCE);
         addModule(FakePlayer.INSTANCE);
         addModule(GhostHand.INSTANCE);
+        addModule(HealthBypass.INSTANCE);
         addModule(InputDisabler.INSTANCE);
         addModule(InvManager.INSTANCE);
         addModule(JumpCooldown.INSTANCE);
@@ -115,6 +116,7 @@ public class ModuleManager {
         addModule(KeepSprint.INSTANCE);
         addModule(MovementFix.INSTANCE);
         addModule(NoSlowdown.INSTANCE);
+        addModule(NoPacketSprint.INSTANCE);
         addModule(Phase.INSTANCE);
         addModule(ReverseStep.INSTANCE);
         addModule(SafeWalk.INSTANCE);
@@ -140,6 +142,7 @@ public class ModuleManager {
         addModule(CustomSky.INSTANCE);
         addModule(ESP2D.INSTANCE);
         addModule(Filter.INSTANCE);
+        addModule(FireballPredict.INSTANCE);
         addModule(FreeCamera.INSTANCE);
         addModule(Fullbright.INSTANCE);
         addModule(GameAnimation.INSTANCE);
@@ -164,6 +167,7 @@ public class ModuleManager {
         addModule(TotemAnimation.INSTANCE);
         addModule(TNTTimer.INSTANCE);
         addModule(Trajectories.INSTANCE);
+        addModule(VelocityPredict.INSTANCE);
         addModule(WorldTweaks.INSTANCE);
         addModule(Xray.INSTANCE);
 

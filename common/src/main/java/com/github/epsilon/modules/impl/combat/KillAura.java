@@ -96,6 +96,14 @@ public class KillAura extends Module {
     private final IntSetting rotationSpeed = intSetting("Rotation Speed", 180, 10, 180, 10);
     private final EnumSetting<Priority> rotationPriority = enumSetting("Rotation Priority", Priority.High);
     private final IntSetting cps = intSetting("CPS", 12, 1, 20, 1, () -> mode.is(Mode.OnePointEight));
+    private final EnumSetting<NoDoubleHitMode> noDoubleHit = enumSetting("No Double Hit", NoDoubleHitMode.Cancel);
+    private final IntSetting hurtTime = intSetting("Hurt Time", 20, 0, 20, 1);
+
+    private enum NoDoubleHitMode {
+        Cancel,
+        NextHit,
+        None
+    }
 
     private final BoolSetting players = boolSetting("Players", true);
     private final BoolSetting mobs = boolSetting("Mobs", true);
@@ -254,6 +262,10 @@ public class KillAura extends Module {
 
     @EventHandler
     private void onPlayerTick(PlayerTickEvent.Pre event) {
+        // Cancel：本轮无论积攒了多少预算，最多只打出一击
+        if (noDoubleHit.is(NoDoubleHitMode.Cancel)) {
+            attacks = Math.min(1, attacks);
+        }
         HitResult hitResult = RotationManager.INSTANCE.getHitResult();
         while (attacks > 0) {
             attacks--;
@@ -261,6 +273,12 @@ public class KillAura extends Module {
             if (hitResult instanceof EntityHitResult entityHitResult) {
                 Entity entity = entityHitResult.getEntity();
                 if (!entity.isAlive()) return;
+
+                // 目标处于受击无敌帧时不出手，把预算留在下一 tick 等待窗口结束
+                if (entity instanceof LivingEntity living && living.hurtTime > hurtTime.getValue()) {
+                    attacks++;
+                    break;
+                }
 
                 mc.gameMode.attack(mc.player, entity);
 
@@ -271,6 +289,9 @@ public class KillAura extends Module {
                 } else {
                     mc.getConnection().send(new ServerboundSwingPacket(InteractionHand.MAIN_HAND));
                 }
+
+                // NextHit：命中后结束本轮消费，剩余预算留到下一 tick
+                if (noDoubleHit.is(NoDoubleHitMode.NextHit)) break;
             }
         }
     }

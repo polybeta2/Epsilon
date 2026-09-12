@@ -3,6 +3,7 @@ package com.github.epsilon.modules.impl.movement;
 import com.github.epsilon.assets.i18n.EpsilonTranslations;
 import com.github.epsilon.events.bus.EventHandler;
 import com.github.epsilon.events.impl.PacketEvent;
+import com.github.epsilon.events.impl.PlayerTickEvent;
 import com.github.epsilon.events.impl.SendPositionEvent;
 import com.github.epsilon.events.impl.SlowdownEvent;
 import com.github.epsilon.managers.NotificationManager;
@@ -10,7 +11,9 @@ import com.github.epsilon.managers.rotation.RotationManager;
 import com.github.epsilon.modules.Category;
 import com.github.epsilon.modules.Module;
 import com.github.epsilon.settings.impl.BoolSetting;
+import com.github.epsilon.settings.impl.DoubleSetting;
 import com.github.epsilon.settings.impl.EnumSetting;
+import com.github.epsilon.settings.impl.IntSetting;
 import com.github.epsilon.utils.network.NetworkUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -37,6 +40,7 @@ public class NoSlowdown extends Module {
 
     private enum Mode {
         Vanilla,
+        Matrix,
         GrimBlink,
         Grim1_2,
         Grim1_3
@@ -47,10 +51,16 @@ public class NoSlowdown extends Module {
     private final BoolSetting bow = boolSetting("Bow", true, () -> !mode.is(Mode.GrimBlink));
     private final BoolSetting crossbow = boolSetting("Crossbow", true, () -> !mode.is(Mode.GrimBlink));
     private final BoolSetting cobweb = boolSetting("Cobweb", true, () -> mode.is(Mode.Vanilla));
+    private final BoolSetting shield = boolSetting("Shield", true, () -> mode.is(Mode.Matrix));
+    private final DoubleSetting matrixSpeed = doubleSetting("Matrix Speed", 0.3, 0.2, 1.0, 0.01, () -> mode.is(Mode.Matrix));
+    private final DoubleSetting matrixHurtSpeed = doubleSetting("Matrix Hurt Speed", 0.7, 0.2, 1.0, 0.01, () -> mode.is(Mode.Matrix));
+    private final IntSetting matrixHurtTicks = intSetting("Matrix Hurt Ticks", 5, 0, 20, 1, () -> mode.is(Mode.Matrix));
+    private final BoolSetting keepSprinting = boolSetting("Keep Sprinting", true, () -> mode.is(Mode.Matrix));
 
     private int ticks;
     private boolean eating;
     private int useDuration = 32;
+    private int ticksSinceHurt;
 
     private final Queue<Packet<?>> packets = new LinkedBlockingQueue<>();
 
@@ -69,6 +79,7 @@ public class NoSlowdown extends Module {
         eating = false;
         ticks = 0;
         useDuration = 32;
+        ticksSinceHurt = 0;
     }
 
     @EventHandler
@@ -154,17 +165,54 @@ public class NoSlowdown extends Module {
         if (!food.getValue() && mc.player.getUseItem().has(DataComponents.FOOD)) return;
         if ((!bow.getValue() || mode.is(Mode.GrimBlink)) && mc.player.getUseItem().is(Items.BOW)) return;
         if ((!crossbow.getValue() || mode.is(Mode.GrimBlink)) && mc.player.getUseItem().is(Items.CROSSBOW)) return;
+        if (!shield.getValue() && mc.player.getUseItem().is(Items.SHIELD)) return;
 
         switch (mode.getValue()) {
             case Vanilla -> cancel(event);
+            case Matrix -> matrix(event);
             case GrimBlink -> grimBlink(event);
             case Grim1_2 -> grim50(event);
             case Grim1_3 -> grim33(event);
         }
     }
 
+    @EventHandler
+    private void onPreTick(PlayerTickEvent.Pre event) {
+        if (nullCheck() || !mode.is(Mode.Matrix)) return;
+
+        // hurtTime 在受伤瞬间最大并逐 tick 递减，归零计数器即进入受伤加速窗口
+        if (mc.player.hurtTime > 0) {
+            ticksSinceHurt = 0;
+        } else {
+            ticksSinceHurt++;
+        }
+    }
+
     private void cancel(SlowdownEvent event) {
         event.setSlowdown(false);
+    }
+
+    /**
+     * Matrix 模式：不完全取消减速，而是用可变倍率模拟"受伤后短暂提速"的真实速度曲线，
+     * 规避恒定减速特征检测。倍率 >= 1.0 时退化为完全取消。
+     */
+    private void matrix(SlowdownEvent event) {
+        if (!mc.player.isUsingItem()) return;
+
+        float base = matrixSpeed.getValue().floatValue();
+        float hurt = matrixHurtSpeed.getValue().floatValue();
+        float multiplier = ticksSinceHurt <= matrixHurtTicks.getValue() ? hurt : base;
+
+        if (multiplier >= 1.0F) {
+            event.setSlowdown(false);
+        } else {
+            event.setSlowdown(true);
+            event.setMultiplier(multiplier);
+        }
+
+        if (keepSprinting.getValue()) {
+            mc.player.setSprinting(true);
+        }
     }
 
     private void grimBlink(SlowdownEvent event) {

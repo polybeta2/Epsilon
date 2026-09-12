@@ -960,6 +960,13 @@
           "highest": "最高"
         },
         "cps": "每秒点击数",
+        "no double hit": {
+          "_value": "防双击",
+          "cancel": "取消",
+          "nexthit": "下一击",
+          "none": "关闭"
+        },
+        "hurt time": "受击帧阈值",
         "players": "玩家",
         "mobs": "怪物",
         "animals": "动物",
@@ -1731,12 +1738,18 @@
           "vanilla": "原版",
           "grimblink": "Grim Blink",
           "grim1_2": "Grim 1/2",
-          "grim1_3": "Grim 1/3"
+          "grim1_3": "Grim 1/3",
+          "matrix": "Matrix"
         },
         "food": "食物",
         "bow": "弓",
         "crossbow": "弩",
-        "cobweb": "蜘蛛网"
+        "cobweb": "蜘蛛网",
+        "shield": "盾牌",
+        "matrix speed": "Matrix 减速倍率",
+        "matrix hurt speed": "Matrix 受伤倍率",
+        "matrix hurt ticks": "Matrix 受伤窗口",
+        "keep sprinting": "保持疾跑"
       },
       "phase": {
         "_value": "穿墙",
@@ -2648,6 +2661,54 @@
         "quartz": "石英",
         "water": "水",
         "lava": "岩浆"
+      },
+      "fireball predict": {
+        "_value": "火球预测",
+        "general": "常规",
+        "render": "渲染",
+        "physics mode": {
+          "_value": "物理模式",
+          "simulator": "完整模拟",
+          "linearraycast": "线性射线"
+        },
+        "max render distance": "最大渲染距离",
+        "max simulated ticks": "最大模拟刻数",
+        "raycast distance": "射线长度",
+        "explosion radius": "爆炸半径",
+        "include wither skulls": "识别凋灵之首",
+        "handheld mode": "手持模式",
+        "warning": "落点警告",
+        "trajectory line": "轨迹线",
+        "line width": "线宽",
+        "distance color": "距离配色",
+        "landing marker": "落点标记",
+        "explosion sphere": "爆炸球线框",
+        "eta": "预计抵达时间",
+        "adaptive text": "自适应字号",
+        "danger boxes": "危险方块盒"
+      },
+      "velocity predict": {
+        "_value": "击退预测",
+        "general": "常规",
+        "render": "渲染",
+        "predict ticks": "预测刻数",
+        "display ticks": "显示刻数",
+        "include explosions": "响应爆炸击退",
+        "void warning": "虚空警告",
+        "show path": "显示轨迹",
+        "show landing box": "显示落点",
+        "line width": "线宽",
+        "path color": "轨迹颜色",
+        "landing color": "落点颜色"
+      },
+      "health bypass": {
+        "_value": "血量旁路",
+        "spoof health": "拦截假血量",
+        "emoji": "心形解析"
+      },
+      "no packet sprint": {
+        "_value": "无疾跑包",
+        "all dir": "全向疾跑"
       }
     },
     "elements": {
