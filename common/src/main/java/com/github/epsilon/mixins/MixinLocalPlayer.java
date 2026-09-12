@@ -3,6 +3,7 @@ package com.github.epsilon.mixins;
 import com.github.epsilon.events.bus.EventBus;
 import com.github.epsilon.events.impl.*;
 import com.github.epsilon.modules.impl.combat.killaura.KillAura;
+import com.github.epsilon.modules.impl.movement.MovementFix;
 import com.github.epsilon.modules.impl.movement.NoPacketSprint;
 import com.github.epsilon.modules.impl.movement.Velocity;
 import com.github.epsilon.modules.impl.player.InvManager;
@@ -16,6 +17,7 @@ import net.minecraft.client.player.ClientInput;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -130,6 +132,15 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
         if (Velocity.INSTANCE.isEnabled() && Velocity.INSTANCE.mode.is(Velocity.Mode.Cancel) && Velocity.INSTANCE.blockPush.getValue()) {
             info.cancel();
         }
+    }
+
+    @WrapOperation(method = "modifyInput", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;modifyInputSpeedForSquareMovement(Lnet/minecraft/world/phys/Vec2;)Lnet/minecraft/world/phys/Vec2;"))
+    private Vec2 movementFixSquareMovement(Vec2 input, Operation<Vec2> original) {
+        // 1.8 移动：跳过 26.2 的方形钳制（对次单位对角输入有 √2 放大，与 1.8 移动模型冲突）
+        if (MovementFix.INSTANCE.isLegacyMovement()) {
+            return input;
+        }
+        return original.call(input);
     }
 
     @WrapOperation(method = "modifyInput", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z"))

@@ -1740,7 +1740,10 @@
       },
       "jump reset": "跳跃重置",
       "keep sprint": "保持疾跑",
-      "movement fix": "移动修复",
+      "movement fix": {
+        "_value": "移动修复",
+        "1.8 movement": "1.8 移动"
+      },
       "no slowdown": {
         "_value": "无减速",
         "mode": {

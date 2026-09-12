@@ -3,6 +3,7 @@ package com.github.epsilon.modules.impl.movement;
 import com.github.epsilon.events.impl.KeyboardInputEvent;
 import com.github.epsilon.modules.Category;
 import com.github.epsilon.modules.Module;
+import com.github.epsilon.settings.impl.BoolSetting;
 import net.minecraft.util.Mth;
 
 public class MovementFix extends Module {
@@ -12,6 +13,17 @@ public class MovementFix extends Module {
     private MovementFix() {
         super("Movement Fix", Category.MOVEMENT);
         setDefaultEnabled(true);
+    }
+
+    /**
+     * 26.2 的 modifyInput 会对次单位对角输入做方形钳制（放大 √2），
+     * 与 1.8.9/1.12.2 内核服务器的移动模型冲突；开启后跳过该钳制，
+     * 输入向量保持减速倍率下的原幅（1.8 语义）。
+     */
+    private final BoolSetting legacyMovement = boolSetting("1.8 Movement", false);
+
+    public boolean isLegacyMovement() {
+        return isEnabled() && legacyMovement.getValue();
     }
 
     private float getDirection(float forward, float strafe) {

@@ -1740,7 +1740,10 @@
       },
       "jump reset": "Jump Reset",
       "keep sprint": "Keep Sprint",
-      "movement fix": "Movement Fix",
+      "movement fix": {
+        "_value": "Movement Fix",
+        "1.8 movement": "1.8 Movement"
+      },
       "no slowdown": {
         "_value": "No Slowdown",
         "mode": {
