@@ -1843,7 +1843,12 @@
         "fade time": "淡出时间",
         "shrink": "收缩",
         "side color": "侧面颜色",
-        "line color": "线条颜色"
+        "line color": "线条颜色",
+        "tower": {
+          "_value": "塔搭",
+          "none": "关闭",
+          "matrix": "Matrix"
+        }
       },
       "speed": {
         "_value": "速度",
@@ -1851,7 +1856,8 @@
           "_value": "模式",
           "strafe": "侧移",
           "strafestrict": "严格侧移",
-          "grim": "Grim"
+          "grim": "Grim",
+          "matrix": "Matrix"
         },
         "collidespeed": "碰撞加速",
         "strict": "严格",
@@ -1870,7 +1876,8 @@
         "h-factor": "水平系数",
         "v-factor": "垂直系数",
         "cooldown": "加速冷却时间",
-        "slowness": "应用缓慢效果"
+        "slowness": "应用缓慢效果",
+        "strafe": "Strafe"
       },
       "step": {
         "_value": "跨步",

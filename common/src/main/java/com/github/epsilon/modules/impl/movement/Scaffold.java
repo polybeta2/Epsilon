@@ -101,6 +101,11 @@ public class Scaffold extends Module {
         Heypixel
     }
 
+    private enum TowerMode {
+        None,
+        Matrix
+    }
+
     private enum RaytraceMode {
         Normal,
         Strict
@@ -175,6 +180,7 @@ public class Scaffold extends Module {
     private final IntSetting rotationSpeed2 = intSetting("Rotation Speed 2", 36, 10, 180, 10, () -> rotationMode.is(RotationMode.Heypixel));
     private final IntSetting rotationBackSpeed = intSetting("Rotation Back Speed", 180, 10, 180, 10, () -> mode.is(Mode.TellyBridge));
     private final IntSetting tellyTicks = intSetting("Telly Ticks", 1, 0, 6, 1, () -> mode.is(Mode.TellyBridge));
+    private final EnumSetting<TowerMode> towerMode = enumSetting("Tower", TowerMode.None);
 
     private final BoolSetting swingHand = boolSetting("Swing Hand", true);
     private final BoolSetting render = boolSetting("Render", true);
@@ -186,6 +192,7 @@ public class Scaffold extends Module {
 
     private int airTicks;
     private int yLevel;
+    private int towerMatrixState;
     private BlockPos blockPos;
     private Direction direction;
     private Rot2f rotation;
@@ -205,6 +212,7 @@ public class Scaffold extends Module {
     @Override
     protected void onEnable() {
         airTicks = 0;
+        towerMatrixState = 0;
         blockPos = null;
         direction = null;
         rotation = null;
@@ -291,10 +299,50 @@ public class Scaffold extends Module {
             rotateCount = 0;
         }
 
-        switch (mode.getValue()) {
-            case TellyBridge -> handleTelly();
-            case GodBridge -> handleNormal();
+        if (isTowerActive()) {
+            handleTowerMatrix();
+        } else {
+            towerMatrixState = 0;
+            switch (mode.getValue()) {
+                case TellyBridge -> handleTelly();
+                case GodBridge -> handleNormal();
+            }
         }
+    }
+
+    /**
+     * Tower（Matrix）触发条件：按住跳跃键且未移动，与 Lyasim 一致。
+     */
+    private boolean isTowerActive() {
+        return !towerMode.is(TowerMode.None) && mc.options.keyJump.isDown() && !mc.player.isMoving();
+    }
+
+    /**
+     * Tower（Matrix）状态机，移植自 Lyasim：起跳 → 落地 → 之后每 tick 把下落拉回 0.42
+     * 实现 Matrix 下的连续跳塔；旋转与放置沿用对准脚下的放置路径。
+     */
+    private void handleTowerMatrix() {
+        switch (towerMatrixState) {
+            case 0 -> {
+                if (!mc.player.onGround()) {
+                    towerMatrixState = 1;
+                }
+            }
+            case 1 -> {
+                if (mc.player.onGround()) {
+                    towerMatrixState = 2;
+                }
+            }
+            case 2 -> {
+                if (mc.player.onGround() || mc.player.getDeltaMovement().y < 0.19) {
+                    mc.player.setDeltaMovement(mc.player.getDeltaMovement().x, 0.42, mc.player.getDeltaMovement().z);
+                }
+            }
+        }
+
+        rotation = getRotation(blockPos, direction);
+        RotationManager.INSTANCE.setRotations(rotation, rotationSpeed.getValue());
+        place();
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

@@ -2,6 +2,7 @@ package com.github.epsilon.modules.impl.movement;
 
 import com.github.epsilon.events.bus.EventHandler;
 import com.github.epsilon.events.bus.EventPriority;
+import com.github.epsilon.events.impl.JumpEvent;
 import com.github.epsilon.events.impl.MoveEvent;
 import com.github.epsilon.events.impl.PacketEvent;
 import com.github.epsilon.events.impl.PlayerTickEvent;
@@ -12,6 +13,7 @@ import com.github.epsilon.settings.impl.BoolSetting;
 import com.github.epsilon.settings.impl.DoubleSetting;
 import com.github.epsilon.settings.impl.EnumSetting;
 import com.github.epsilon.settings.impl.IntSetting;
+import com.github.epsilon.utils.player.MoveUtils;
 import com.github.epsilon.utils.player.PlayerUtils;
 import com.github.epsilon.utils.timer.TimerUtils;
 import net.minecraft.network.protocol.game.ClientboundExplodePacket;
@@ -40,6 +42,7 @@ public class Speed extends Module {
         Strafe,
         StrafeStrict,
         Grim,
+        Matrix
     }
 
     private final EnumSetting<Mode> mode = enumSetting("Mode", Mode.Strafe);
@@ -63,6 +66,8 @@ public class Speed extends Module {
     private final DoubleSetting vertical = doubleSetting("V-Factor", 1.0, 0.0, 5.0, 0.01, () -> mode.is(Mode.Strafe));
     private final IntSetting coolDown = intSetting("Cooldown", 1000, 0, 5000, 1, () -> mode.is(Mode.Strafe));
     private final BoolSetting slow = boolSetting("Slowness", false, () -> mode.is(Mode.Strafe));
+
+    private final BoolSetting matrixStrafe = boolSetting("Strafe", false, () -> mode.is(Mode.Matrix));
 
     private boolean stop;
     private double speed;
@@ -167,6 +172,27 @@ public class Speed extends Module {
     }
 
     @EventHandler
+    private void onJump(JumpEvent event) {
+        // Matrix 模式疾跑跳跃朝移动方向，保证跳-格挡节奏下的加速不丢失
+        if (!mode.is(Mode.Matrix) || Scaffold.INSTANCE.isEnabled() || !mc.player.isSprinting()) return;
+        event.setYaw(getMovingYaw());
+    }
+
+    private float getMovingYaw() {
+        Vec2 move = mc.player.input.getMoveVector();
+        float forward = move.y;
+        float strafe = move.x;
+        float yaw = mc.player.getYRot();
+        if (forward < 0) yaw += 180;
+        float factor = 1.0f;
+        if (forward < 0) factor = -0.5f;
+        else if (forward > 0) factor = 0.5f;
+        if (strafe > 0) yaw -= 90 * factor;
+        else if (strafe < 0) yaw += 90 * factor;
+        return yaw;
+    }
+
+    @EventHandler
     private void onPlayerTickPost(PlayerTickEvent.Post event) {
         if (!nullCheck()) distance = getDistance2D();
     }
@@ -236,6 +262,31 @@ public class Speed extends Module {
             event.cancel();
 
             this.stage++;
+            return;
+        }
+        if (mode.is(Mode.Matrix)) {
+            // Lyasim Speed Matrix：地面跳格挡节奏，空中低速可选保持，受伤外持续轻微下压
+            if (Scaffold.INSTANCE.isEnabled()) return;
+
+            double hspeed = Math.hypot(event.getX(), event.getZ());
+
+            if (mc.player.onGround()) {
+                mc.player.jumpFromGround();
+                double[] motion = MoveUtils.forward(hspeed);
+                event.setX(motion[0]);
+                event.setZ(motion[1]);
+                event.setY(mc.player.getDeltaMovement().y);
+            } else {
+                if (hspeed <= 0.2 && !mc.player.horizontalCollision && matrixStrafe.getValue()) {
+                    double[] motion = MoveUtils.forward(hspeed);
+                    event.setX(motion[0]);
+                    event.setZ(motion[1]);
+                }
+                if (mc.player.hurtTime <= 0) {
+                    event.setY(event.getY() - 0.0033);
+                }
+            }
+            event.cancel();
             return;
         }
         double speedEffect = 1.0;

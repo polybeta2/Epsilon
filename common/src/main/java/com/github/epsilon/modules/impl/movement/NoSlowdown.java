@@ -10,6 +10,7 @@ import com.github.epsilon.managers.NotificationManager;
 import com.github.epsilon.managers.rotation.RotationManager;
 import com.github.epsilon.modules.Category;
 import com.github.epsilon.modules.Module;
+import com.github.epsilon.modules.impl.combat.killaura.KillAura;
 import com.github.epsilon.settings.impl.BoolSetting;
 import com.github.epsilon.settings.impl.DoubleSetting;
 import com.github.epsilon.settings.impl.EnumSetting;
@@ -52,9 +53,9 @@ public class NoSlowdown extends Module {
     private final BoolSetting crossbow = boolSetting("Crossbow", true, () -> !mode.is(Mode.GrimBlink));
     private final BoolSetting cobweb = boolSetting("Cobweb", true, () -> mode.is(Mode.Vanilla));
     private final BoolSetting shield = boolSetting("Shield", true, () -> mode.is(Mode.Matrix));
-    private final DoubleSetting matrixSpeed = doubleSetting("Matrix Speed", 0.3, 0.2, 1.0, 0.01, () -> mode.is(Mode.Matrix));
-    private final DoubleSetting matrixHurtSpeed = doubleSetting("Matrix Hurt Speed", 0.7, 0.2, 1.0, 0.01, () -> mode.is(Mode.Matrix));
-    private final IntSetting matrixHurtTicks = intSetting("Matrix Hurt Ticks", 5, 0, 20, 1, () -> mode.is(Mode.Matrix));
+    private final DoubleSetting matrixSpeed = doubleSetting("Matrix Speed", 0.4, 0.2, 1.0, 0.05, () -> mode.is(Mode.Matrix));
+    private final DoubleSetting matrixHurtSpeed = doubleSetting("Matrix Hurt Speed", 1.0, 0.2, 1.0, 0.05, () -> mode.is(Mode.Matrix));
+    private final IntSetting matrixHurtTicks = intSetting("Matrix Hurt Ticks", 6, 0, 20, 1, () -> mode.is(Mode.Matrix));
     private final BoolSetting keepSprinting = boolSetting("Keep Sprinting", true, () -> mode.is(Mode.Matrix));
 
     private int ticks;
@@ -195,9 +196,10 @@ public class NoSlowdown extends Module {
     /**
      * Matrix 模式：不完全取消减速，而是用可变倍率模拟"受伤后短暂提速"的真实速度曲线，
      * 规避恒定减速特征检测。倍率 >= 1.0 时退化为完全取消。
+     * KillAura AutoBlock 的服务端格挡（客户端未真实使用物品）同样套用此倍率。
      */
     private void matrix(SlowdownEvent event) {
-        if (!mc.player.isUsingItem()) return;
+        if (!mc.player.isUsingItem() && !KillAura.INSTANCE.isBlockingServerSide()) return;
 
         float base = matrixSpeed.getValue().floatValue();
         float hurt = matrixHurtSpeed.getValue().floatValue();

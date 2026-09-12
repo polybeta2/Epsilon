@@ -201,7 +201,10 @@ public class KillAura extends Module {
             ClientPacketListener connection = mc.getConnection();
             PlayerInfo localPlayerInfo = connection == null ? null : connection.getPlayerInfo(mc.player.getUUID());
             int latencyTicks = localPlayerInfo == null ? 0 : localPlayerInfo.getLatency() / 50;
-            if (player.hurtTime <= latencyTicks + 1 || (mc.player.hurtTime >= 6 && !Velocity.INSTANCE.isEnabled()) || Criticals.INSTANCE.fallTicks == 2) {
+            // 目标无敌帧等待阈值与攻击侧 Hurt Time 门控共用一个设置：
+            // Hurt Time=20（默认）时不等待，CPS 与打普通生物一致；调低则启用严格命中选择
+            int hurtGate = Math.max(hurtTime.getValue(), latencyTicks + 1);
+            if (player.hurtTime <= hurtGate || (mc.player.hurtTime >= 6 && !Velocity.INSTANCE.isEnabled()) || Criticals.INSTANCE.fallTicks == 2) {
                 accumulateAttackBudget();
             }
         }

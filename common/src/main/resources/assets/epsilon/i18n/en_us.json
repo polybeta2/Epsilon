@@ -1843,7 +1843,12 @@
         "fade time": "Fade Time",
         "shrink": "Shrink",
         "side color": "Side Color",
-        "line color": "Line Color"
+        "line color": "Line Color",
+        "tower": {
+          "_value": "Tower",
+          "none": "None",
+          "matrix": "Matrix"
+        }
       },
       "speed": {
         "_value": "Speed",
@@ -1851,7 +1856,8 @@
           "_value": "Mode",
           "strafe": "Strafe",
           "strafestrict": "Strafe Strict",
-          "grim": "Grim"
+          "grim": "Grim",
+          "matrix": "Matrix"
         },
         "collidespeed": "Collide Speed",
         "strict": "Strict",
@@ -1870,7 +1876,8 @@
         "h-factor": "Horizontal Factor",
         "v-factor": "Vertical Factor",
         "cooldown": "Cooldown",
-        "slowness": "Slowness"
+        "slowness": "Slowness",
+        "strafe": "Strafe"
       },
       "step": {
         "_value": "Step",
