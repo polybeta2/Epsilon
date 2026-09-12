@@ -8,14 +8,13 @@
 Minecraft.<init> TAIL
   -> fabric/neoforge Loader
   -> EpsilonFabric / EpsilonNeoForge
-  -> 收集并注册 Addon
   -> EpsilonCommon.init()
 ```
 
-- Fabric：`MixinMinecraftFabric` 调用 `EpsilonFabric.init()`，读取 entrypoint key `epsilon:addon`，
-  并注册 `LanguageReloadListener`。
-- NeoForge：`MixinMinecraft` 调用 `EpsilonNeoForge.init()`，先发布 `EpsilonAddonSetupEvent`，再在
-  `NeoForgeEventHandler` 中注册 `LanguageReloadListener`。
+- Fabric：`MixinMinecraftFabric` 调用 `EpsilonFabric.init()`，并通过 `ResourceLoader` 注册
+  `LanguageReloadListener`。
+- NeoForge：`MixinMinecraft` 调用 `EpsilonNeoForge.init()`，`NeoForgeEventHandler` 在客户端事件总线
+  注册 `LanguageReloadListener`。
 - 两端在检测到 Iris 时把 TTF 字体 pipeline 注册为 `IrisProgram.TEXTURED`。
 
 `EpsilonCommon.init()` 当前顺序：
@@ -23,12 +22,11 @@ Minecraft.<init> TAIL
 1. 设置 `Constants.mc`，注册 `com.github.epsilon` 包的 EventBus lambda factory。
 2. `ModuleManager.INSTANCE.initModules()`。
 3. `HudElementManager.INSTANCE.initElements()`。
-4. `AddonManager.INSTANCE.setupAddons()`。
-5. 预热运行时 Manager：`ExecutorManager`、`ClientboundPacketManager`、`ServerboundPacketManager`、
+4. 预热运行时 Manager：`ExecutorManager`、`ClientboundPacketManager`、`ServerboundPacketManager`、
    `TargetManager`、`ExtrapolationManager`、`HealthManager`、`SkinManager`。
-6. `ConfigManager.INSTANCE.initConfig()`，随后选择当前语言。
-7. 初始化 `Render3DScheduler` 的 RenderPipeline。
-8. 生成空 i18n 模板，并注册退出时保存配置的 shutdown hook。
+5. `ConfigManager.INSTANCE.initConfig()`，随后选择当前语言。
+6. 初始化 `Render3DScheduler` 的 RenderPipeline。
+7. 生成空 i18n 模板，并注册退出时保存配置的 shutdown hook。
 
 ## Manager 组织
 
@@ -37,9 +35,8 @@ Minecraft.<init> TAIL
 
 | Manager | 职责 |
 |---|---|
-| `ModuleManager` | 注册本体/Addon 模块，处理键盘与鼠标绑定 |
+| `ModuleManager` | 注册本体模块，处理键盘与鼠标绑定 |
 | `HudElementManager` | 注册 HUD，持有共享 `UiScene`，统一提交 HUD 帧与原版 overlay |
-| `AddonManager` | Addon 去重、一次性 setup 与查询 |
 | `ConfigManager` | 多配置、导入导出、Setting/custom state、好友与账号数据 |
 | `TranslationManager` | 跟踪 `TranslateComponent`，语言变化时刷新缓存 |
 | `RendererManager` / `RenderTargetManager` | 跟踪 Epsilon 创建的 renderer 与 render target |

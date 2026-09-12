@@ -10,14 +10,13 @@
 ├── client-settings.json
 ├── accounts.json
 ├── configs/<name>/
-│   ├── <addonId>/<moduleName>.json
-│   ├── <addonId>/addon-settings.json
+│   ├── epsilon/<moduleName>.json
 │   └── friends.json
 ├── imports/
 └── exports/
 ```
 
-- 模块、HUD 和 Addon Setting 按当前活动配置保存；`epsilon` 是本体模块与 HUD 的 `<addonId>`。
+- 模块和 HUD 按当前活动配置保存，每个组件对应 `configs/<name>/epsilon/<moduleName>.json`。
 - `client-settings.json` 保存标记为 root 的客户端设置，`accounts.json` 保存账号列表。
 - 配置支持新建、切换、删除、另存、重载、Zip 导入和导出；导出时写入 `config-info.json` 元数据。
 - `saveNow()` 已由 JVM shutdown hook 调用，账号增删也会主动保存。

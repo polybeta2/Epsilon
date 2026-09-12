@@ -7,8 +7,6 @@
 | 本体模块 | `epsilon.modules.{module name lower-case}` |
 | 本体 HUD | `epsilon.elements.{element name lower-case}` |
 | 分类 | `epsilon.categories.{category}` |
-| Addon 模块 | `{addonId}.modules.{module name lower-case}` |
-| Addon 自身设置 | `{addonId}.settings.{setting/group name lower-case}` |
 
 Module/HUD 的 Setting、SettingGroup 和 Enum 选项使用所属组件 key 的子 key。名称通过 `toLowerCase()`
 处理，空格会保留。
@@ -52,7 +50,7 @@ Module/HUD 的 Setting、SettingGroup 和 Enum 选项使用所属组件 key 的�
 
 1. 先加载 `en_us`，再叠加当前语言（`EpsilonLanguage.English` / `ChineseSimplified` /
    `Custom`，Custom 使用 `ClientSetting.customLanguage`）。
-2. 遍历所有 namespace 的 `i18n/<code>.json`，因此 Addon 可以自带语言文件。
+2. 遍历所有 namespace 的 `i18n/<code>.json`。
 3. 把原版格式化占位符（`%d`、`%f`）规整为 `%s`，避免翻译文本触发格式异常。
 4. 刷新 `TranslationManager` 中登记的 `TranslateComponent` 缓存。
 
@@ -74,12 +72,8 @@ Fabric 通过 `ResourceLoader.registerReloadListener`、NeoForge 通过 `AddClie
    ```
 
    脚本支持 `--source fabric|neoforge|custom`、`--empty-i18n`、`--target`、`--owner`（本体用
-   `epsilon`，Addon 用其 addonId）、`--dry-run` 与 `--no-backup`；未指定参数时进入交互选择。
+   `epsilon`）、`--dry-run` 与 `--no-backup`；未指定参数时进入交互选择。
 3. 人工填写新增翻译，确认 `en_us.json` 与 `zh_cn.json` 都是合法嵌套 object。
 4. 通过完整构建验证资源处理。
-
-注意：26.2.x 的 `I18NFileGenerator` 目前只遍历本体 key、分类、静态 `EpsilonTranslations` 以及已注册
-模块/HUD（含带 addonId 的 Addon 模块），Addon 自身 setting 的模板生成尚未启用；这部分 key 需要按
-`{addonId}.settings.*` 约定手工维护。
 
 Key、`_value` 和叶节点类型的强制约束见 [`AGENTS.md`](../../AGENTS.md)。

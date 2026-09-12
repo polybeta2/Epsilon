@@ -33,3 +33,25 @@ repo
 .trae
 .claude
 /reference
+# Added by code-review-graph
+.code-review-graph/
+
+.codegraph/
+/runclient.ps1
+/runclient.cmd
+/runclient-logs/
+# code-review-graph install 生成的各平台 AI 工具配置
+.codebuddy/
+.cursor/
+.cursorrules
+.gemini/
+.github/instructions/
+.kiro/
+.mcp.json
+.qoder/
+.windsurfrules
+CLAUDE.md
+CODEBUDDY.md
+GEMINI.md
+QODER.md
+opencode.jsonc

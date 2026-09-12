@@ -48,6 +48,12 @@ rg -n "methodName" reference/vanilla-26.2/net/minecraft -g "*.java"
 
 升级 Minecraft 后，不得继续使用旧版源码 Jar 或旧版 `reference/vanilla-xx.x/`；重新运行生成任务，并解压到新的版本目录。
 
+## 代码图谱检索
+
+- 本项目已配置 codegraph MCP（本地索引位于 `.codegraph/`，属于构建产物，已加入 `.gitignore`）。定位符号、理解调用关系或评估修改影响时，必须先用 codegraph 的 `codegraph_explore` 查询缩小范围，再阅读源码。
+- codegraph 返回的源码片段可直接当作已读内容使用，但修改决策仍以当前源码为准；索引可能滞后，文件系统内容优先。
+- 本项目另有 code-review-graph 知识图谱（见文件末尾），侧重调用方/影响面/架构社区查询；两者都只用于缩小范围，不替代源码核验。
+
 ## 分层边界
 
 - `common/` 可以调用 Minecraft API，但不得导入 `net.fabricmc.*`、`net.neoforged.*` 或其他 ModLoader API。
@@ -58,9 +64,9 @@ rg -n "methodName" reference/vanilla-26.2/net/minecraft -g "*.java"
 
 ## 生命周期约束
 
-不得随意改变 `EpsilonCommon.init()` 的初始化顺序。Addon 必须在 `AddonManager.setupAddons()` 前完成收集；配置加载依赖模块、HUD 和 Addon Setting 已注册；Manager 预热必须早于配置恢复。
+不得随意改变 `EpsilonCommon.init()` 的初始化顺序。配置加载依赖模块和 HUD 已注册；Manager 预热必须早于配置恢复。
 
-- `ModuleManager.initModules()`、`HudElementManager.initElements()` 和 `AddonManager.setupAddons()` 必须在 `ConfigManager.initConfig()` 之前完成。
+- `ModuleManager.initModules()` 和 `HudElementManager.initElements()` 必须在 `ConfigManager.initConfig()` 之前完成。
 - Manager 统一为 `public static final Xxx INSTANCE` 加私有构造函数的单例；调用方不得为已由 Manager 持有的资源另建实例。
 - `RotationManager.INSTANCE` 是可变静态字段，切换旋转模式会替换实例；每次使用都必须重新读取，不得长期缓存。
 - GPU renderer、render target、字体 atlas 和 shader 必须在渲染线程创建和使用。
@@ -68,7 +74,7 @@ rg -n "methodName" reference/vanilla-26.2/net/minecraft -g "*.java"
 - 不再使用的 GPU 资源调用 `close()`；全局销毁交给 `RendererManager`、`RenderTargetManager`、`ShaderManager` 等 Manager 生命周期。
 - `LanguageReloadListener` 触发的资源重载必须保持线程安全；语言与翻译刷新不得持有已失效的资源。
 
-## Module 与 Addon 约束
+## Module 约束
 
 - 本体模块优先使用 `public static final ... INSTANCE` 和私有构造函数；维护既有例外时遵循现状，不做无关统一。
 - Setting 必须是实例字段，通过 `SettingHost` DSL 自动注册。依赖条件使用 lambda 或方法引用延迟读取，不得在字段初始化时固化结果。
@@ -76,9 +82,6 @@ rg -n "methodName" reference/vanilla-26.2/net/minecraft -g "*.java"
 - 模块禁用必须恢复按键、计时器、物品栏、旋转 pending 状态、缓存和其他外部状态。
 - 内置模块必须加入 `ModuleManager.initModules()`；HUD 元素必须加入 `HudElementManager.initElements()`，不得只创建 `INSTANCE` 而漏注册。
 - 仅在确有 Setting 之外的持久状态时重写 `resetCustomState()`、`saveCustomState()`、`loadCustomState(JsonObject)`。
-- Addon ID 必须非空且全局唯一；`AddonManager` 会忽略空 ID 和重复 ID 的注册。
-- Addon 模块只能在 `onSetup()` 中通过 `registerModule(module)` 注册；注册发生在 `AddonManager.setupAddons()` 执行期间。
-- 外部 Addon 在 `com.github.epsilon` 之外声明 `@EventHandler` 时，必须为自己的包前缀注册 EventBus lambda factory。
 
 ## 事件与 Mixin 约束
 
@@ -132,7 +135,7 @@ rg -n "methodName" reference/vanilla-26.2/net/minecraft -g "*.java"
 - 新增 Javadoc 与解释性注释使用中文；只注释不明显的约束、线程或算法原因。
 - Logger 使用 `Constants.LOGGER`。
 - Minecraft 实例使用 `Constants.mc`；Module/HudModule 内优先使用继承的 `mc`。
-- 不得吞异常。边界层隔离单个 Addon 或资源失败时，记录包含上下文的日志。
+- 不得吞异常。边界层隔离单个功能模块或资源失败时，记录包含上下文的日志。
 - 不做与任务无关的重构、批量格式化或生成文件改写。
 - 修改 `native/smtc` 时必须同步重建 `common/src/main/resources/natives/windows-x86_64/epsilon_smtc.dll`，并保持 Java 侧 JNI 签名一致。
 
@@ -141,3 +144,49 @@ rg -n "methodName" reference/vanilla-26.2/net/minecraft -g "*.java"
 - 运行与改动范围匹配的任务。共享行为至少检查 Fabric 和 NeoForge 编译；Mixin、资源、启动或 Gradle 变更运行完整 `buildRelease`。
 - 最终执行 `git diff --check`、`git diff -- AGENTS.md` 和 `git status --short`。
 - 文档入口和主题划分见 [`docs/README.md`](docs/README.md)；文档移动或重命名时必须修复仓库内链接。
+
+<!-- code-review-graph MCP tools -->
+## MCP Tools: code-review-graph
+
+**This project has a knowledge graph. Start with the code-review-graph
+MCP tools to narrow scope, then read the source.** The graph is cheaper than scanning files and
+gives you structural context (callers, dependents, test coverage) that file search cannot.
+
+### When to use graph tools FIRST
+
+- **Exploring code**: `semantic_search_nodes_tool` or `query_graph_tool` instead of Grep
+- **Understanding impact**: `get_impact_radius_tool` instead of manually tracing imports
+- **Code review**: `detect_changes_tool` + `get_review_context_tool` instead of reading entire files
+- **Finding relationships**: `query_graph_tool` with callers_of/callees_of/imports_of/tests_for
+- **Architecture questions**: `get_architecture_overview_tool` + `list_communities_tool`
+
+### Verify in the source
+
+- Narrow scope with the graph, then read the source. Do not change code from graph output alone.
+- For any non-trivial change, read the implementation and the relevant tests before concluding.
+- Verify the exact source when touching behavior, database logic, migrations, retries, fallbacks,
+  recovery, or compatibility code.
+- When the graph and the source disagree, the source wins. The graph may be stale or may not
+  model that relationship.
+- An empty graph result can mean "not indexed" or "not statically visible", not "does not exist".
+
+### Key Tools
+
+| Tool | Use when |
+| ------ | ---------- |
+| `detect_changes_tool` | Reviewing code changes — gives risk-scored analysis |
+| `get_review_context_tool` | Need source snippets for review — token-efficient |
+| `get_impact_radius_tool` | Understanding blast radius of a change |
+| `get_affected_flows_tool` | Finding which execution paths are impacted |
+| `query_graph_tool` | Tracing callers, callees, imports, tests, dependencies |
+| `semantic_search_nodes_tool` | Finding functions/classes by name or keyword |
+| `get_architecture_overview_tool` | Understanding high-level codebase structure |
+| `refactor_tool` | Planning renames, finding dead code |
+
+### Workflow
+
+1. The graph auto-updates on file changes (via hooks).
+2. Use `detect_changes_tool` for code review.
+3. Use `get_affected_flows_tool` to understand impact.
+4. Use `query_graph_tool` pattern="tests_for" to check coverage.
+<!-- /code-review-graph MCP tools -->

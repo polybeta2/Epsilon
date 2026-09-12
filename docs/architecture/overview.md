@@ -10,7 +10,7 @@ Epsilon 是面向 Minecraft 客户端的多加载器工具模组，同时支持 
 ```text
 Epsilon/
 ├── common/       # 共享核心：模块、事件、GUI、渲染、配置、工具类和公共资源
-├── fabric/       # Fabric 启动、Addon 入口、资源重载和平台 Mixin
+├── fabric/       # Fabric 启动、资源重载和平台 Mixin
 ├── neoforge/     # NeoForge 启动、事件桥接、Jar-in-Jar 依赖和平台 Mixin
 ├── native/       # 本地组件源码，目前是 Windows SMTC 读取桥
 ├── buildSrc/     # Gradle 约定插件
@@ -25,7 +25,7 @@ Lumin Graphics 目前是 `common` 内的源码包，而不是独立子项目；`
 ## 多加载器分层
 
 `common/` 持有加载器无关的业务实现并可直接调用 Minecraft API。Fabric 与 NeoForge 项目只负责平台启动、
-平台事件桥接、Addon 收集和确有差异的 Mixin。
+平台事件桥接和确有差异的 Mixin。
 
 `multiloader-loader` 会将下列内容加入两个加载器子项目：
 
@@ -55,7 +55,6 @@ Epsilon 自有的声明式 UI 库位于 `com.github.epsilon.gui.lib`，负责 `U
 
 | 包 | 职责 |
 |---|---|
-| `com.github.epsilon.addon` | `EpsilonAddon`、`EpsilonAddonSetupEvent` 与 `AddonBootstrap` |
 | `com.github.epsilon.accounts` | 账号模型、缓存、Microsoft 登录与皮肤纹理请求 |
 | `com.github.epsilon.assets` | 配置迁移、i18n 与资源位置工具 |
 | `com.github.epsilon.elements` | `HudModule`、已注册 HUD 元素、岛屿/通知等展示组件 |
@@ -63,7 +62,7 @@ Epsilon 自有的声明式 UI 库位于 `com.github.epsilon.gui.lib`，负责 `U
 | `com.github.epsilon.graphics` | Lumin 渲染框架：pipelines、renderers、schedulers、shaders、buffers、text |
 | `com.github.epsilon.gui` | `gui/lib` 声明式 UI 库，以及 Panel、Dropdown、HUD Editor、MainMenu、账号界面 |
 | `com.github.epsilon.interfaces` | Mixin accessor/duck 接口 |
-| `com.github.epsilon.managers` | Module、HUD、Addon、配置、翻译、账号、渲染资源、Rotation、Target 等运行时管理 |
+| `com.github.epsilon.managers` | Module、HUD、配置、翻译、账号、渲染资源、Rotation、Target 等运行时管理 |
 | `com.github.epsilon.mixins` | 共享客户端 Mixin；启用列表以 `epsilon.mixins.json` 为准 |
 | `com.github.epsilon.modules` | `Module`、`Category`、`ClientSetting` 和 combat/player/movement/render 模块 |
 | `com.github.epsilon.settings` | `SettingHost` DSL、分组、布局规划和各类 Setting 实现 |
