@@ -1,5 +1,6 @@
 package com.github.epsilon.modules.impl.combat;
 
+import com.github.epsilon.modules.impl.combat.killaura.KillAura;
 import com.github.epsilon.events.bus.EventHandler;
 import com.github.epsilon.events.bus.EventPriority;
 import com.github.epsilon.events.impl.ClientTickEvent;

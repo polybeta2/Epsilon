@@ -5,7 +5,7 @@ import com.github.epsilon.events.impl.ArmRenderEvent;
 import com.github.epsilon.events.impl.HeldItemRenderEvent;
 import com.github.epsilon.modules.Category;
 import com.github.epsilon.modules.Module;
-import com.github.epsilon.modules.impl.combat.KillAura;
+import com.github.epsilon.modules.impl.combat.killaura.KillAura;
 import com.github.epsilon.settings.Setting;
 import com.github.epsilon.settings.SettingGroup;
 import com.github.epsilon.settings.impl.BoolSetting;

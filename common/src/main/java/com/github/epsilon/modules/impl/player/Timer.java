@@ -5,7 +5,7 @@ import com.github.epsilon.events.impl.*;
 import com.github.epsilon.managers.TimerManager;
 import com.github.epsilon.modules.Category;
 import com.github.epsilon.modules.Module;
-import com.github.epsilon.modules.impl.combat.KillAura;
+import com.github.epsilon.modules.impl.combat.killaura.KillAura;
 import com.github.epsilon.settings.impl.DoubleSetting;
 import com.github.epsilon.settings.impl.EnumSetting;
 import com.github.epsilon.settings.impl.IntSetting;

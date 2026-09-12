@@ -967,6 +967,12 @@
           "none": "None"
         },
         "hurt time": "Hurt Time",
+        "auto block": {
+          "_value": "Auto Block",
+          "none": "None",
+          "matrix": "Matrix"
+        },
+        "block range": "Block Range",
         "players": "Players",
         "mobs": "Mobs",
         "animals": "Animals",

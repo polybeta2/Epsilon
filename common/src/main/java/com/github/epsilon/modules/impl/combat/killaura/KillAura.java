@@ -1,16 +1,17 @@
-package com.github.epsilon.modules.impl.combat;
+package com.github.epsilon.modules.impl.combat.killaura;
 
-import com.github.epsilon.events.bus.EventBus;
 import com.github.epsilon.events.bus.EventHandler;
+import com.github.epsilon.events.bus.EventBus;
 import com.github.epsilon.events.bus.listeners.ConsumerListener;
 import com.github.epsilon.events.impl.ClientTickEvent;
 import com.github.epsilon.events.impl.PlayerTickEvent;
 import com.github.epsilon.events.impl.Render3DEvent;
 import com.github.epsilon.managers.rotation.RotationManager;
 import com.github.epsilon.managers.target.TargetManager;
-import com.github.epsilon.managers.target.TargetRequest;
 import com.github.epsilon.modules.Category;
 import com.github.epsilon.modules.Module;
+import com.github.epsilon.modules.impl.combat.AntiBot;
+import com.github.epsilon.modules.impl.combat.Criticals;
 import com.github.epsilon.modules.impl.movement.NoSlowdown;
 import com.github.epsilon.modules.impl.movement.Scaffold;
 import com.github.epsilon.modules.impl.movement.Velocity;
@@ -24,23 +25,19 @@ import com.github.epsilon.utils.rotation.Priority;
 import com.github.epsilon.utils.rotation.RaytraceUtils;
 import com.github.epsilon.utils.rotation.Rot2f;
 import com.github.epsilon.utils.rotation.RotationUtils;
-import com.github.epsilon.utils.timer.TimerUtils;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.network.protocol.game.ServerboundSwingPacket;
-import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.util.Mth;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 
 public class KillAura extends Module {
 
@@ -64,12 +61,12 @@ public class KillAura extends Module {
         OnePointNinePlus
     }
 
-    private enum TargetMode {
+    enum TargetMode {
         Single,
         Switch
     }
 
-    private enum PriorityMode {
+    enum PriorityMode {
         None,
         Health,
         Fov,
@@ -83,36 +80,43 @@ public class KillAura extends Module {
         Deobf
     }
 
-    private final BoolSetting pauseOnEat = boolSetting("Pause On Eat", true);
-    private final BoolSetting pauseOnScaffold = boolSetting("Pause On Scaffold", true);
-    private final BoolSetting hitSelect = boolSetting("Hit Select", true);
-    private final EnumSetting<Mode> mode = enumSetting("Mode", Mode.OnePointEight);
-    private final EnumSetting<TargetMode> targetMode = enumSetting("Target Mode", TargetMode.Single);
-    private final IntSetting switchDelay = intSetting("Switch Delay", 100, 0, 500, 1, () -> targetMode.is(TargetMode.Switch));
-    private final EnumSetting<PriorityMode> priorityMode = enumSetting("Priority Mode", PriorityMode.None);
-    public final DoubleSetting searchRange = doubleSetting("Search Range", 4.0, 1.0, 6.0, 0.1);
-    public final DoubleSetting aimRange = doubleSetting("Aim Range", 3.0, 1.0, 6.0, 0.1);
-    private final IntSetting fov = intSetting("FOV", 360, 10, 360, 1);
-    private final IntSetting rotationSpeed = intSetting("Rotation Speed", 180, 10, 180, 10);
-    private final EnumSetting<Priority> rotationPriority = enumSetting("Rotation Priority", Priority.High);
-    private final IntSetting cps = intSetting("CPS", 12, 1, 20, 1, () -> mode.is(Mode.OnePointEight));
-    private final EnumSetting<NoDoubleHitMode> noDoubleHit = enumSetting("No Double Hit", NoDoubleHitMode.Cancel);
-    private final IntSetting hurtTime = intSetting("Hurt Time", 20, 0, 20, 1);
-
     private enum NoDoubleHitMode {
         Cancel,
         NextHit,
         None
     }
 
-    private final BoolSetting players = boolSetting("Players", true);
-    private final BoolSetting mobs = boolSetting("Mobs", true);
-    private final BoolSetting animals = boolSetting("Animals", true);
-    private final BoolSetting villagers = boolSetting("Villagers", false);
-    private final BoolSetting ambient = boolSetting("Ambient", false);
-    private final BoolSetting water = boolSetting("Water", false);
-    private final BoolSetting others = boolSetting("Others", false);
-    private final BoolSetting invisible = boolSetting("Invisible", true);
+    enum AutoBlockMode {
+        None,
+        Matrix
+    }
+
+    private final BoolSetting pauseOnEat = boolSetting("Pause On Eat", true);
+    private final BoolSetting pauseOnScaffold = boolSetting("Pause On Scaffold", true);
+    private final BoolSetting hitSelect = boolSetting("Hit Select", true);
+    private final EnumSetting<Mode> mode = enumSetting("Mode", Mode.OnePointEight);
+    final EnumSetting<TargetMode> targetMode = enumSetting("Target Mode", TargetMode.Single);
+    final IntSetting switchDelay = intSetting("Switch Delay", 100, 0, 500, 1, () -> targetMode.is(TargetMode.Switch));
+    final EnumSetting<PriorityMode> priorityMode = enumSetting("Priority Mode", PriorityMode.None);
+    public final DoubleSetting searchRange = doubleSetting("Search Range", 4.0, 1.0, 6.0, 0.1);
+    public final DoubleSetting aimRange = doubleSetting("Aim Range", 3.0, 1.0, 6.0, 0.1);
+    final IntSetting fov = intSetting("FOV", 360, 10, 360, 1);
+    private final IntSetting rotationSpeed = intSetting("Rotation Speed", 180, 10, 180, 10);
+    private final EnumSetting<Priority> rotationPriority = enumSetting("Rotation Priority", Priority.High);
+    private final IntSetting cps = intSetting("CPS", 12, 1, 20, 1, () -> mode.is(Mode.OnePointEight));
+    private final EnumSetting<NoDoubleHitMode> noDoubleHit = enumSetting("No Double Hit", NoDoubleHitMode.Cancel);
+    private final IntSetting hurtTime = intSetting("Hurt Time", 20, 0, 20, 1);
+    final EnumSetting<AutoBlockMode> autoBlockMode = enumSetting("Auto Block", AutoBlockMode.None);
+    final DoubleSetting blockRange = doubleSetting("Block Range", 4.0, 1.0, 6.0, 0.1, () -> autoBlockMode.is(AutoBlockMode.Matrix));
+
+    final BoolSetting players = boolSetting("Players", true);
+    final BoolSetting mobs = boolSetting("Mobs", true);
+    final BoolSetting animals = boolSetting("Animals", true);
+    final BoolSetting villagers = boolSetting("Villagers", false);
+    final BoolSetting ambient = boolSetting("Ambient", false);
+    final BoolSetting water = boolSetting("Water", false);
+    final BoolSetting others = boolSetting("Others", false);
+    final BoolSetting invisible = boolSetting("Invisible", true);
 
     private final BoolSetting swingHand = boolSetting("SwingHand", true);
     private final BoolSetting esp = boolSetting("ESP", true);
@@ -145,13 +149,12 @@ public class KillAura extends Module {
     private final DoubleSetting fireflyAmplitude = doubleSetting("Firefly Amplitude", 3.0, 0.0, 10.0, 0.25, () -> esp.getValue() && espMode.is(ESPMode.Firefly));
 
     public LivingEntity target;
-    private List<LivingEntity> targets;
-    private int targetIndex;
 
     private int attacks;
     private long lastAttackTime;
 
-    private final TimerUtils switchTimer = new TimerUtils();
+    private final KillAuraTargeting targeting = new KillAuraTargeting();
+    private final KillAuraAutoBlock autoBlock = new KillAuraAutoBlock(this);
 
     @Override
     public String getInfo() {
@@ -173,89 +176,28 @@ public class KillAura extends Module {
         }
 
         if (pauseOnScaffold.getValue() && Scaffold.INSTANCE.isEnabled()) {
-            resetState();
-            return;
-        }
-
-        targets = new ArrayList<>(TargetManager.INSTANCE.acquireTargets(TargetRequest.of(
-                searchRange.getValue(),
-                fov.getValue().floatValue(),
-                players.getValue(),
-                mobs.getValue(),
-                animals.getValue(),
-                villagers.getValue(),
-                ambient.getValue(),
-                water.getValue(),
-                others.getValue(),
-                invisible.getValue(),
-                64
-        )));
-
-        Velocity velocity = Velocity.INSTANCE;
-
-        if (velocity.delay) {
-            targets.sort(
-                    Comparator.comparingDouble(o -> (double) Math.abs(velocity.yaw - RotationUtils.calculate(o).getYaw()))
-            );
-        }
-
-        switch (targetMode.getValue()) {
-            case Single -> targetIndex = 0;
-            case Switch -> {
-                if (switchTimer.passedMillise(switchDelay.getValue())) {
-                    switchTimer.reset();
-                    if (++targetIndex >= targets.size()) {
-                        targetIndex = 0;
-                    }
-                }
-            }
-        }
-
-        if (targetIndex >= targets.size()) {
-            targetIndex = 0;
-        }
-
-        if (targets.isEmpty()) {
             target = null;
+            autoBlock.reset();
             return;
         }
 
-        switch (priorityMode.getValue()) {
-            case Range -> targets.sort(Comparator.comparingDouble(o -> (double) o.distanceTo(mc.player)));
-            case Fov -> {
-                targets.sort(Comparator.comparingDouble(o -> (double) Math.abs(Mth.wrapDegrees(mc.player.getXRot() - RotationUtils.calculate(o).getYaw()))));
-            }
-            case Health -> {
-                targets.sort(Comparator.comparingDouble(o -> o instanceof LivingEntity living ? (double) living.getHealth() : 0.0));
-            }
-        }
+        target = targeting.select(this);
 
-        target = targets.get(targetIndex);
+        autoBlock.tick(target);
+
+        if (target == null) return;
 
         Rot2f calculate = RotationUtils.calculate(target, true, aimRange.getValue());
         if (RaytraceUtils.raytrace(calculate, aimRange.getValue()).getType() == HitResult.Type.BLOCK) return;
         RotationManager.INSTANCE.setRotations(calculate, rotationSpeed.getValue(), rotation -> RaytraceUtils.raytrace(rotation, 3.0f) instanceof EntityHitResult entityHitResult && entityHitResult.getEntity() == target, rotationPriority.getValue());
 
         HitResult hitResult = RotationManager.INSTANCE.getHitResult();
-        if (hitSelect.getValue() && hitResult instanceof EntityHitResult entityHitResult && entityHitResult.getEntity() instanceof Player player && !AntiBot.INSTANCE.isBot(player) && !TargetManager.INSTANCE.isSameTeam(player) && velocity.attackQueue <= 0) {
+        if (hitSelect.getValue() && hitResult instanceof EntityHitResult entityHitResult && entityHitResult.getEntity() instanceof Player player && !AntiBot.INSTANCE.isBot(player) && !TargetManager.INSTANCE.isSameTeam(player) && Velocity.INSTANCE.attackQueue <= 0) {
             ClientPacketListener connection = mc.getConnection();
             PlayerInfo localPlayerInfo = connection == null ? null : connection.getPlayerInfo(mc.player.getUUID());
             int latencyTicks = localPlayerInfo == null ? 0 : localPlayerInfo.getLatency() / 50;
             if (player.hurtTime <= latencyTicks + 1 || (mc.player.hurtTime >= 6 && !Velocity.INSTANCE.isEnabled()) || Criticals.INSTANCE.fallTicks == 2) {
-                switch (mode.getValue()) {
-                    case OnePointNinePlus -> {
-                        if (attacks == 0 && mc.player.getAttackStrengthScale(0.5f) >= 1.0f) {
-                            attacks++;
-                        }
-                    }
-                    case OnePointEight -> {
-                        long time = System.currentTimeMillis();
-                        if (time - lastAttackTime >= (long) (1000.0 / cps.getValue())) {
-                            attacks++;
-                            lastAttackTime = time;
-                        }
-                    }
-                }
+                accumulateAttackBudget();
             }
         }
     }
@@ -280,7 +222,10 @@ public class KillAura extends Module {
                     break;
                 }
 
+                // Matrix AutoBlock：释放盾 → 攻击 → 补盾，攻击到达服务端时不处于格挡状态
+                boolean wasBlocking = autoBlock.beginAttack();
                 mc.gameMode.attack(mc.player, entity);
+                autoBlock.endAttack(wasBlocking);
 
                 if (espMode.is(ESPMode.Deobf)) DeobfESP.markHit(entity);
 
@@ -301,20 +246,7 @@ public class KillAura extends Module {
         if (target != null && Velocity.INSTANCE.attackQueue <= 0) {
             HitResult hitResult = RotationManager.INSTANCE.getHitResult();
             if (!hitSelect.getValue() || !(hitResult instanceof EntityHitResult entityHitResult && entityHitResult.getEntity() instanceof Player)) {
-                switch (mode.getValue()) {
-                    case OnePointNinePlus -> {
-                        if (attacks == 0 && mc.player.getAttackStrengthScale(0.5f) >= 1.0f) {
-                            attacks++;
-                        }
-                    }
-                    case OnePointEight -> {
-                        long time = System.currentTimeMillis();
-                        if (time - lastAttackTime >= (long) (1000.0 / cps.getValue())) {
-                            attacks++;
-                            lastAttackTime = time;
-                        }
-                    }
-                }
+                accumulateAttackBudget();
             }
         }
 
@@ -365,11 +297,28 @@ public class KillAura extends Module {
         }
     }
 
+    private void accumulateAttackBudget() {
+        switch (mode.getValue()) {
+            case OnePointNinePlus -> {
+                if (attacks == 0 && mc.player.getAttackStrengthScale(0.5f) >= 1.0f) {
+                    attacks++;
+                }
+            }
+            case OnePointEight -> {
+                long time = System.currentTimeMillis();
+                if (time - lastAttackTime >= (long) (1000.0 / cps.getValue())) {
+                    attacks++;
+                    lastAttackTime = time;
+                }
+            }
+        }
+    }
+
     private void resetState() {
-        targets = null;
         target = null;
         attacks = 0;
         lastAttackTime = 0L;
+        autoBlock.reset();
     }
 
 }

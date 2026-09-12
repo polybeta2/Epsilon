@@ -12,6 +12,7 @@ import com.github.epsilon.managers.sound.SoundManager;
 import com.github.epsilon.modules.Module;
 import com.github.epsilon.modules.impl.ClientSetting;
 import com.github.epsilon.modules.impl.combat.*;
+import com.github.epsilon.modules.impl.combat.killaura.KillAura;
 import com.github.epsilon.modules.impl.movement.*;
 import com.github.epsilon.modules.impl.movement.elytrafly.ElytraFly;
 import com.github.epsilon.modules.impl.movement.follower.Follower;

@@ -10,7 +10,7 @@ import com.github.epsilon.managers.rotation.RotationManager;
 import com.github.epsilon.modules.Category;
 import com.github.epsilon.modules.Module;
 import com.github.epsilon.modules.impl.combat.AntiBot;
-import com.github.epsilon.modules.impl.combat.KillAura;
+import com.github.epsilon.modules.impl.combat.killaura.KillAura;
 import com.github.epsilon.settings.impl.BoolSetting;
 import com.github.epsilon.settings.impl.EnumSetting;
 import com.github.epsilon.settings.impl.IntSetting;

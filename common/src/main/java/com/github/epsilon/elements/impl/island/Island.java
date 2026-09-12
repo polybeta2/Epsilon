@@ -5,7 +5,7 @@ import com.github.epsilon.elements.impl.island.instance.LandController;
 import com.github.epsilon.elements.impl.island.instance.impl.*;
 import com.github.epsilon.elements.impl.island.pattern.impl.CheckPattern;
 import com.github.epsilon.graphics.renderers.TextRenderer;
-import com.github.epsilon.modules.impl.combat.KillAura;
+import com.github.epsilon.modules.impl.combat.killaura.KillAura;
 import com.github.epsilon.modules.impl.movement.Scaffold;
 import com.github.epsilon.modules.impl.player.Timer;
 import com.github.epsilon.settings.impl.BoolSetting;

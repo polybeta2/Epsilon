@@ -2,7 +2,7 @@ package com.github.epsilon.utils.render.esp;
 
 import com.github.epsilon.assets.resources.ResourceLocationUtils;
 import com.github.epsilon.graphics.immediate.LuminImmediateRenderer;
-import com.github.epsilon.modules.impl.combat.KillAura;
+import com.github.epsilon.modules.impl.combat.killaura.KillAura;
 import com.github.epsilon.utils.render.animation.Easing;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.ColorTargetState;

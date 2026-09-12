@@ -967,6 +967,12 @@
           "none": "关闭"
         },
         "hurt time": "受击帧阈值",
+        "auto block": {
+          "_value": "自动举盾",
+          "none": "关闭",
+          "matrix": "Matrix"
+        },
+        "block range": "举盾范围",
         "players": "玩家",
         "mobs": "怪物",
         "animals": "动物",
