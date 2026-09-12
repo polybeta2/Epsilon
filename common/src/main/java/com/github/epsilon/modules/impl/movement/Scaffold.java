@@ -324,6 +324,10 @@ public class Scaffold extends Module {
      * 实现 Matrix 下的连续跳塔；旋转与放置沿用对准脚下的放置路径。
      */
     private void handleTowerMatrix() {
+        rotation = getRotation(blockPos, direction);
+        RotationManager.INSTANCE.setRotations(rotation, rotationSpeed.getValue());
+        boolean placed = place();
+
         switch (towerMatrixState) {
             case 0 -> {
                 if (!mc.player.onGround()) {
@@ -336,15 +340,14 @@ public class Scaffold extends Module {
                 }
             }
             case 2 -> {
-                if (mc.player.onGround() || mc.player.getDeltaMovement().y < 0.19) {
+                // 空中重升仅在本 tick 成功放置方块后进行——"从新方块起跳"才有合法依据，
+                // 无放置的空中加速会被 Matrix 的 move.vert 检出（air_bst/air_mdf）
+                if (mc.player.onGround() || (placed && mc.player.getDeltaMovement().y < 0.19)) {
                     mc.player.setDeltaMovement(mc.player.getDeltaMovement().x, 0.42, mc.player.getDeltaMovement().z);
                 }
             }
         }
 
-        rotation = getRotation(blockPos, direction);
-        RotationManager.INSTANCE.setRotations(rotation, rotationSpeed.getValue());
-        boolean placed = place();
         if (towerDebug.getValue()) {
             Constants.LOGGER.info("[Tower] state={} y={} vy={} onAir={} pos={} placed={}",
                     towerMatrixState,
