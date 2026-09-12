@@ -2,16 +2,127 @@ package com.github.epsilon.utils.rotation;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static com.github.epsilon.Constants.mc;
 
 public class RaytraceUtils {
+
+    /**
+     * 攻击选点结果：包围盒上的目标点及其可见性。
+     */
+    public record AttackSpot(Vec3 pos, boolean visible) {
+    }
+
+    // 包围盒表面扫描步长
+    private static final double SPOT_SCAN_STEP = 0.5;
+
+    /**
+     * 在目标包围盒上寻找可攻击点（参照 BMW raytraceBox 的双轨策略）：
+     * 可见点在 range 内选取，不可见点只允许 wallRange 内穿墙；
+     * 两条轨都按与上次旋转的角度差打分，优先返回可见点。
+     *
+     * @param target       目标实体
+     * @param range        可见攻击距离
+     * @param wallRange    穿墙攻击距离
+     * @param lastRotation 上一次旋转，用于打分保持旋转连续性
+     * @return 选点结果；眼睛在盒内或无可行点时返回 null
+     */
+    public static AttackSpot findAttackSpot(Entity target, double range, double wallRange, Rot2f lastRotation) {
+        if (mc.level == null || mc.player == null) {
+            return null;
+        }
+
+        AABB box = target.getBoundingBox();
+        Vec3 eyes = mc.player.getEyePosition();
+        if (box.contains(eyes)) {
+            return null;
+        }
+
+        double wallCap = Math.min(wallRange, range);
+        Vec3 preferenceVec = Vec3.directionFromRotation(lastRotation.getPitch(), lastRotation.getYaw());
+
+        AttackSpot bestVisible = null;
+        AttackSpot bestHidden = null;
+        double bestVisibleScore = Double.MAX_VALUE;
+        double bestHiddenScore = Double.MAX_VALUE;
+
+        for (Vec3 spot : collectSpots(box, eyes, preferenceVec, range)) {
+            double dist = eyes.distanceTo(spot);
+            boolean visible = canSeePointFrom(eyes, spot, ClipContext.Block.COLLIDER);
+            if (visible ? dist > range : dist > wallCap) {
+                continue;
+            }
+
+            Rot2f rotation = RotationUtils.calculate(eyes, spot);
+            double score = Math.abs(Mth.wrapDegrees(rotation.getYaw() - lastRotation.getYaw()))
+                    + Math.abs(rotation.getPitch() - lastRotation.getPitch());
+
+            if (visible) {
+                if (score < bestVisibleScore) {
+                    bestVisibleScore = score;
+                    bestVisible = new AttackSpot(spot, true);
+                }
+            } else if (score < bestHiddenScore) {
+                bestHiddenScore = score;
+                bestHidden = new AttackSpot(spot, false);
+            }
+        }
+
+        return bestVisible != null ? bestVisible : bestHidden;
+    }
+
+    /**
+     * 收集包围盒上的候选攻击点：上次旋转射线与盒子的交点、距眼睛最近点、六个面的网格采样。
+     */
+    private static List<Vec3> collectSpots(AABB box, Vec3 eyes, Vec3 preferenceVec, double range) {
+        List<Vec3> spots = new ArrayList<>();
+
+        // 上一旋转方向的射线与盒子表面交点，保证旋转连续时优先打在原命中位置附近
+        box.clip(eyes, eyes.add(preferenceVec.scale(range * 2.0))).ifPresent(spots::add);
+
+        // 距眼睛最近的盒子表面点（范围边缘收益最大的点）
+        spots.add(new Vec3(
+                Mth.clamp(eyes.x, box.minX, box.maxX),
+                Mth.clamp(eyes.y, box.minY, box.maxY),
+                Mth.clamp(eyes.z, box.minZ, box.maxZ)
+        ));
+
+        double eps = 1.0E-7;
+        double[] xs = {box.minX, box.maxX};
+        double[] ys = {box.minY, box.maxY};
+        double[] zs = {box.minZ, box.maxZ};
+        for (double x : xs) {
+            for (double y = box.minY; y <= box.maxY + eps; y += SPOT_SCAN_STEP) {
+                for (double z = box.minZ; z <= box.maxZ + eps; z += SPOT_SCAN_STEP) {
+                    spots.add(new Vec3(x, y, z));
+                }
+            }
+        }
+        for (double y : ys) {
+            for (double x = box.minX; x <= box.maxX + eps; x += SPOT_SCAN_STEP) {
+                for (double z = box.minZ; z <= box.maxZ + eps; z += SPOT_SCAN_STEP) {
+                    spots.add(new Vec3(x, y, z));
+                }
+            }
+        }
+        for (double z : zs) {
+            for (double x = box.minX; x <= box.maxX + eps; x += SPOT_SCAN_STEP) {
+                for (double y = box.minY; y <= box.maxY + eps; y += SPOT_SCAN_STEP) {
+                    spots.add(new Vec3(x, y, z));
+                }
+            }
+        }
+
+        return spots;
+    }
 
     /**
      * 判断两点之间是否没有方块遮挡。
@@ -21,7 +132,20 @@ public class RaytraceUtils {
      * @return 判断结果
      */
     public static boolean canSeePointFrom(Vec3 eyes, Vec3 vec3) {
-        return mc.level.clip(new ClipContext(eyes, vec3, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, mc.player)).getType() == HitResult.Type.MISS;
+        return canSeePointFrom(eyes, vec3, ClipContext.Block.OUTLINE);
+    }
+
+    /**
+     * 判断两点之间是否没有方块遮挡，可指定方块形状类型。
+     * COLLIDER 不受草类等非碰撞方块影响，适合战斗可见性判定。
+     *
+     * @param eyes 射线起点
+     * @param vec3 射线终点
+     * @param block 方块形状类型
+     * @return 判断结果
+     */
+    public static boolean canSeePointFrom(Vec3 eyes, Vec3 vec3, ClipContext.Block block) {
+        return mc.level.clip(new ClipContext(eyes, vec3, block, ClipContext.Fluid.NONE, mc.player)).getType() == HitResult.Type.MISS;
     }
 
     /**

@@ -35,10 +35,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.util.Mth;
 
 import java.awt.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 
 public class KillAura extends Module {
 
@@ -87,6 +89,13 @@ public class KillAura extends Module {
         None
     }
 
+    private enum RayCastMode {
+        // 高级选点：包围盒表面扫描 + 旋转连续性偏好 + 可见/穿墙双轨（参照 BMW raytraceBox）
+        Advance,
+        // 旧版选点：身体点 + 自适应网格，被方块挡住即放弃（保留作回退）
+        Custom
+    }
+
     enum AutoBlockMode {
         None,
         Matrix,
@@ -105,6 +114,8 @@ public class KillAura extends Module {
     final IntSetting fov = intSetting("FOV", 360, 10, 360, 1);
     private final IntSetting rotationSpeed = intSetting("Rotation Speed", 180, 10, 180, 10);
     private final EnumSetting<Priority> rotationPriority = enumSetting("Rotation Priority", Priority.High);
+    private final EnumSetting<RayCastMode> rayCast = enumSetting("Ray Cast", RayCastMode.Advance);
+    private final DoubleSetting wallRange = doubleSetting("Wall Range", 3.0, 0.0, 6.0, 0.1, () -> rayCast.is(RayCastMode.Advance));
     private final IntSetting cps = intSetting("CPS", 12, 1, 20, 1, () -> mode.is(Mode.OnePointEight));
     private final IntSetting cpsJitter = intSetting("CPS Jitter", 25, 0, 100, 5, () -> mode.is(Mode.OnePointEight) && cps.getValue() > 1);
     private final EnumSetting<NoDoubleHitMode> noDoubleHit = enumSetting("No Double Hit", NoDoubleHitMode.Cancel);
@@ -158,6 +169,10 @@ public class KillAura extends Module {
     private int attacks;
     private long lastAttackTime;
 
+    // Advance 模式当前瞄准的选点与可见性：穿墙瞄准时原版 pick 会被方块截断，攻击需走专用分支
+    private Vec3 pendingSpot;
+    private boolean pendingThroughWall;
+
     private final KillAuraTargeting targeting = new KillAuraTargeting();
     private final KillAuraAutoBlock autoBlock = new KillAuraAutoBlock(this);
 
@@ -186,15 +201,41 @@ public class KillAura extends Module {
             return;
         }
 
+        pendingSpot = null;
+        pendingThroughWall = false;
+
         target = targeting.select(this);
 
         autoBlock.tick(target);
 
         if (target == null) return;
 
-        Rot2f calculate = RotationUtils.calculate(target, true, aimRange.getValue());
-        if (RaytraceUtils.raytrace(calculate, aimRange.getValue()).getType() == HitResult.Type.BLOCK) return;
-        RotationManager.INSTANCE.setRotations(calculate, rotationSpeed.getValue(), rotation -> RaytraceUtils.raytrace(rotation, 3.0f) instanceof EntityHitResult entityHitResult && entityHitResult.getEntity() == target, rotationPriority.getValue());
+        Rot2f calculate;
+        if (rayCast.is(RayCastMode.Advance)) {
+            RaytraceUtils.AttackSpot spot = RaytraceUtils.findAttackSpot(
+                    target,
+                    aimRange.getValue(),
+                    Math.min(wallRange.getValue(), aimRange.getValue()),
+                    RotationManager.INSTANCE.getLastRotation());
+            if (spot == null) {
+                // 眼睛在盒内等退化场景回退旧选点，保证近距离不丢攻击
+                calculate = RotationUtils.calculate(target, true, aimRange.getValue());
+            } else {
+                calculate = RotationUtils.calculate(spot.pos());
+                pendingSpot = spot.pos();
+                pendingThroughWall = !spot.visible();
+            }
+        } else {
+            calculate = RotationUtils.calculate(target, true, aimRange.getValue());
+        }
+
+        if (pendingSpot == null && RaytraceUtils.raytrace(calculate, aimRange.getValue()).getType() == HitResult.Type.BLOCK) return;
+
+        // 穿墙瞄准不做中间旋转可见性校验（射线必然穿墙），其余情况校验中间旋转持续命中目标
+        Function<Rot2f, Boolean> pathCheck = pendingThroughWall ? null : rotation ->
+                RaytraceUtils.raytrace(rotation, aimRange.getValue()) instanceof EntityHitResult entityHitResult
+                        && entityHitResult.getEntity() == target;
+        RotationManager.INSTANCE.setRotations(calculate, rotationSpeed.getValue(), pathCheck, rotationPriority.getValue());
 
         HitResult hitResult = RotationManager.INSTANCE.getHitResult();
         if (hitSelect.getValue() && hitResult instanceof EntityHitResult entityHitResult && entityHitResult.getEntity() instanceof Player player && !AntiBot.INSTANCE.isBot(player) && !TargetManager.INSTANCE.isSameTeam(player) && Velocity.INSTANCE.attackQueue <= 0) {
@@ -217,15 +258,24 @@ public class KillAura extends Module {
             attacks = Math.min(1, attacks);
         }
         HitResult hitResult = RotationManager.INSTANCE.getHitResult();
+        // Advance：只攻击当前目标，防止准星扫到无关实体被误打
+        Entity attackEntity = null;
+        if (hitResult instanceof EntityHitResult entityHitResult
+                && (!rayCast.is(RayCastMode.Advance) || entityHitResult.getEntity() == target)) {
+            attackEntity = entityHitResult.getEntity();
+        }
+        // 穿墙瞄准：pick 被方块截断，旋转收敛到选点且在穿墙距离内时直接攻击目标
+        if (attackEntity == null && pendingThroughWall && isRotationOnSpot()) {
+            attackEntity = target;
+        }
         while (attacks > 0) {
             attacks--;
             if (pauseOnEat.getValue() && PlayerUtils.isEating() || NoSlowdown.INSTANCE.isWorking()) return;
-            if (hitResult instanceof EntityHitResult entityHitResult) {
-                Entity entity = entityHitResult.getEntity();
-                if (!entity.isAlive()) return;
+            if (attackEntity != null) {
+                if (!attackEntity.isAlive()) return;
 
                 // 目标处于受击无敌帧时不出手，把预算留在下一 tick 等待窗口结束
-                if (entity instanceof LivingEntity living && living.hurtTime > hurtTime.getValue()) {
+                if (attackEntity instanceof LivingEntity living && living.hurtTime > hurtTime.getValue()) {
                     attacks++;
                     break;
                 }
@@ -238,11 +288,11 @@ public class KillAura extends Module {
 
                 // Matrix AutoBlock：释放盾 → 攻击 → 补盾，攻击到达服务端时不处于格挡状态
                 boolean wasBlocking = autoBlock.beginAttack();
-                mc.gameMode.attack(mc.player, entity);
+                mc.gameMode.attack(mc.player, attackEntity);
                 autoBlock.endAttack(wasBlocking);
-                autoBlock.postAttack(entity);
+                autoBlock.postAttack(attackEntity);
 
-                if (espMode.is(ESPMode.Deobf)) DeobfESP.markHit(entity);
+                if (espMode.is(ESPMode.Deobf)) DeobfESP.markHit(attackEntity);
 
                 if (swingHand.getValue()) {
                     mc.player.swing(InteractionHand.MAIN_HAND);
@@ -333,6 +383,22 @@ public class KillAura extends Module {
     }
 
     /**
+     * 穿墙瞄准时判断托管旋转是否已收敛到选点，且选点仍在穿墙距离内。
+     */
+    private boolean isRotationOnSpot() {
+        if (pendingSpot == null) {
+            return false;
+        }
+        if (mc.player.getEyePosition().distanceTo(pendingSpot) > Math.min(wallRange.getValue(), aimRange.getValue())) {
+            return false;
+        }
+        Rot2f spotRotation = RotationUtils.calculate(pendingSpot);
+        Rot2f current = RotationManager.INSTANCE.getRotation();
+        return Math.abs(Mth.wrapDegrees(current.getYaw() - spotRotation.getYaw())) < 1.5
+                && Math.abs(current.getPitch() - spotRotation.getPitch()) < 1.5;
+    }
+
+    /**
      * AutoBlock 当前是否让服务端认为玩家处于格挡状态；供减速链路套用 1.8 格挡减速。
      */
     public boolean isBlockingServerSide() {
@@ -343,6 +409,8 @@ public class KillAura extends Module {
         target = null;
         attacks = 0;
         lastAttackTime = 0L;
+        pendingSpot = null;
+        pendingThroughWall = false;
         autoBlock.reset();
     }
 
