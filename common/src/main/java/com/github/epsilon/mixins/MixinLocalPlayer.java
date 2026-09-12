@@ -142,9 +142,10 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
         return event.isSlowdown();
     }
 
-    @Inject(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;aiStep()V"))
+    @Inject(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/AbstractClientPlayer;aiStep()V"))
     private void noPacketSprintReassert(CallbackInfo ci) {
         // 位于原版疾跑校验之后、travel 之前：任何来源的疾跑覆盖都在此被纠正
+        //（LocalPlayer 的 super.aiStep() 经 AbstractClientPlayer 转发）
         NoPacketSprint.INSTANCE.reassertAllDir();
     }
 
