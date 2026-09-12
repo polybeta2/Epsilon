@@ -708,7 +708,14 @@
         "place cps": "Place CPS",
         "charge cps": "Charge CPS"
       },
-      "anti bot": "Anti Bot",
+      "anti bot": {
+        "_value": "Anti Bot",
+        "mode": {
+          "_value": "Mode",
+          "tab": "Tab",
+          "matrix": "Matrix"
+        }
+      },
       "backtrack": {
         "_value": "Backtrack",
         "min range": "Min Range",
@@ -962,6 +969,12 @@
           "high": "High",
           "highest": "Highest"
         },
+        "ray cast": {
+          "_value": "Ray Cast",
+          "advance": "Advance",
+          "custom": "Custom"
+        },
+        "wall range": "Wall Range",
         "cps": "CPS",
         "cps jitter": "CPS Jitter",
         "no double hit": {
@@ -1395,9 +1408,12 @@
         "_value": "Anti Void",
         "mode": {
           "_value": "Mode",
-          "ghostblock": "Ghost Block"
+          "predict": "Predict",
+          "maxfall": "Max Fall"
         },
-        "void level": "Void Level"
+        "void level": "Void Level",
+        "max fall": "Max Fall",
+        "fall distance": "Fall Distance"
       },
       "auto armor": {
         "_value": "Auto Armor",
@@ -1816,7 +1832,9 @@
       "keep sprint": "Keep Sprint",
       "movement fix": {
         "_value": "Movement Fix",
-        "1.8 movement": "1.8 Movement"
+        "1": {
+          "8 movement": "1.8 Movement"
+        }
       },
       "no slowdown": {
         "_value": "No Slowdown",
@@ -2903,6 +2921,7 @@
         "timer balance": "Timer Balance",
         "tab list": "Tab List",
         "music": "Music",
+        "lyric": "Lyric",
         "background color": "Background Color",
         "drop shadow": "Drop Shadow",
         "background blur": "Background Blur",

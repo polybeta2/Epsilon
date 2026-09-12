@@ -708,7 +708,14 @@
         "place cps": "放置CPS",
         "charge cps": "充能CPS"
       },
-      "anti bot": "反人机",
+      "anti bot": {
+        "_value": "反人机",
+        "mode": {
+          "_value": "模式",
+          "tab": "Tab 列表",
+          "matrix": "Matrix"
+        }
+      },
       "backtrack": {
         "_value": "回溯",
         "min range": "最小距离",
@@ -962,6 +969,12 @@
           "high": "高",
           "highest": "最高"
         },
+        "ray cast": {
+          "_value": "射线选点",
+          "advance": "高级",
+          "custom": "自定义"
+        },
+        "wall range": "穿墙距离",
         "cps": "每秒点击数",
         "cps jitter": "CPS 抖动",
         "no double hit": {
@@ -1395,9 +1408,12 @@
         "_value": "防虚空",
         "mode": {
           "_value": "模式",
-          "ghostblock": "幽灵方块"
+          "predict": "坠落预测",
+          "maxfall": "最大摔落"
         },
-        "void level": "虚空高度"
+        "void level": "虚空高度",
+        "max fall": "最大摔落",
+        "fall distance": "摔落距离"
       },
       "auto armor": {
         "_value": "自动穿甲",
@@ -1816,7 +1832,9 @@
       "keep sprint": "保持疾跑",
       "movement fix": {
         "_value": "移动修复",
-        "1.8 movement": "1.8 移动"
+        "1": {
+          "8 movement": "1.8 移动"
+        }
       },
       "no slowdown": {
         "_value": "无减速",
@@ -2903,6 +2921,7 @@
         "timer balance": "计时器余额",
         "tab list": "玩家列表",
         "music": "音乐",
+        "lyric": "歌词",
         "background color": "背景颜色",
         "drop shadow": "阴影",
         "background blur": "背景模糊",
