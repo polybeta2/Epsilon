@@ -168,7 +168,8 @@ public class AntiBot extends Module {
         } else if (event.getPacket() instanceof ClientboundUpdateAttributesPacket packet) {
             attributesSet.add(packet.getEntityId());
         } else if (event.getPacket() instanceof ClientboundRemoveEntitiesPacket packet) {
-            for (int id : packet.getEntityIds()) {
+            // 26.3 起 ClientboundRemoveEntitiesPacket 为 record，访问器为 entityIds()（fastutil IntList）
+            for (int id : packet.entityIds()) {
                 attributesSet.remove(id);
             }
         }
