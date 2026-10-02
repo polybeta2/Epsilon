@@ -6,6 +6,7 @@ import com.github.epsilon.gui.lib.render.UiRenderBatch;
 import com.github.epsilon.gui.theme.MD3Theme;
 import com.github.epsilon.utils.render.animation.Animation;
 import com.github.epsilon.utils.render.animation.Easing;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 
@@ -96,7 +97,7 @@ public class ConfirmActionPopup implements PanelPopupHost.Popup {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean isDoubleClick) {
-        if (event.button() != 0 || !bounds.contains(event.x(), event.y())) {
+        if (event.button() != InputConstants.MOUSE_BUTTON_LEFT || !bounds.contains(event.x(), event.y())) {
             return false;
         }
         closeAfterClick = false;

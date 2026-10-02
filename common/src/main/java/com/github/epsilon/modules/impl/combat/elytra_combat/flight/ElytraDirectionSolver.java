@@ -17,11 +17,15 @@ import java.util.List;
  * <p>因为滑翔速度受惯性、重力和阻力影响，直接看向目标并不等于实际飞向目标。
  * 这里固定 yaw 为期望水平方向，在 pitch 范围内采样并细化，使下一 tick 模拟速度与期望速度夹角最小。</p>
  */
-public final class ElytraDirectionSolver {
+public class ElytraDirectionSolver {
 
-    /** 安全解至少预演的 tick 数；短于该值的候选会被视为存在近期碰撞风险。 */
+    /**
+     * 安全解至少预演的 tick 数；短于该值的候选会被视为存在近期碰撞风险。
+     */
     private static final int TRAJECTORY_HORIZON_TICKS = 4;
-    /** 抬头保护探测距离与逃逸 pitch；与 ControlElytraFlightMode 保持一致。 */
+    /**
+     * 抬头保护探测距离与逃逸 pitch；与 ControlElytraFlightMode 保持一致。
+     */
     private static final double CEILING_PROBE_DISTANCE = 0.75;
     private static final double CEILING_PROBE_EPSILON = 1.0E-4;
     private static final float CEILING_ESCAPE_PITCH = 5.0f;
@@ -33,7 +37,7 @@ public final class ElytraDirectionSolver {
     /**
      * 主线程使用的安全解。
      *
-     * <p>先按速度对齐求出基础旋转，再用完整玩家碰撞箱沿 26.2 滑翔方程预演后续
+     * <p>先按速度对齐求出基础旋转，再用完整玩家碰撞箱沿 26.3 滑翔方程预演后续
      * tick。只要预演会碰到方块（包括头顶），就在基础解附近寻找差值最小、仍能通过
      * 完整预演的旋转，避免“下体过去但头顶撞方块”。</p>
      */

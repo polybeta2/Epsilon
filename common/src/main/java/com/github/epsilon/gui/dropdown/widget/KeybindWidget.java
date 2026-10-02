@@ -10,6 +10,7 @@ import com.github.epsilon.settings.impl.KeybindSetting;
 import com.github.epsilon.utils.client.KeybindUtils;
 import com.github.epsilon.utils.render.animation.Animation;
 import com.github.epsilon.utils.render.animation.Easing;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import java.awt.*;
 
@@ -60,7 +61,7 @@ public class KeybindWidget extends SettingWidget<KeybindSetting> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0 && isHovered(mouseX, mouseY, buttonX, buttonY, buttonW, buttonH)) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && isHovered(mouseX, mouseY, buttonX, buttonY, buttonW, buttonH)) {
             listening = !listening;
             DropdownScreen.INSTANCE.react(listening
                     ? ReisaDropdownCompanion.Action.KEY_BIND
@@ -68,7 +69,7 @@ public class KeybindWidget extends SettingWidget<KeybindSetting> {
             return true;
         }
 
-        if (listening && button != 0) {
+        if (listening && button != InputConstants.MOUSE_BUTTON_LEFT) {
             setting.setValue(KeybindUtils.encodeMouseButton(button));
             listening = false;
             DropdownScreen.INSTANCE.react(ReisaDropdownCompanion.Action.CONFIRM);
@@ -81,15 +82,15 @@ public class KeybindWidget extends SettingWidget<KeybindSetting> {
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (!listening) return false;
 
-        if (keyCode == 256) {
+        if (keyCode == InputConstants.KEY_ESCAPE) {
             setting.setValue(KeybindUtils.NONE);
-        } else if (keyCode == 259) {
+        } else if (keyCode == InputConstants.KEY_BACKSPACE) {
             setting.setValue(KeybindUtils.NONE);
         } else {
             setting.setValue(keyCode);
         }
         listening = false;
-        DropdownScreen.INSTANCE.react(keyCode == 256
+        DropdownScreen.INSTANCE.react(keyCode == InputConstants.KEY_ESCAPE
                 ? ReisaDropdownCompanion.Action.CANCEL
                 : ReisaDropdownCompanion.Action.CONFIRM);
         return true;

@@ -13,6 +13,7 @@ import com.github.epsilon.managers.sound.SoundManager;
 import com.github.epsilon.settings.impl.BoolSetting;
 import com.github.epsilon.utils.render.animation.Animation;
 import com.github.epsilon.utils.render.animation.Easing;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.util.Mth;
 
 public class BoolWidget extends SettingWidget<BoolSetting> {
@@ -99,7 +100,7 @@ public class BoolWidget extends SettingWidget<BoolSetting> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT) {
             float sw = SWITCH_WIDTH;
             float sh = SWITCH_HEIGHT;
             float sx = absoluteX(width - DropdownTheme.SETTING_PADDING_X - sw);

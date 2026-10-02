@@ -12,8 +12,18 @@ import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 @Mixin(InventoryScreen.class)
 public class MixinInventoryScreen {
 
-    @ModifyArgs(method = {"extractEntityInInventoryFollowsMouse", "renderEntityInInventoryFollowsAngle"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;entity(Lnet/minecraft/client/renderer/entity/state/EntityRenderState;FLorg/joml/Vector3fc;Lorg/joml/Quaternionfc;Lorg/joml/Quaternionfc;IIII)V"))
+    @ModifyArgs(method = "extractEntityInInventoryFollowsMouse", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;entity(Lnet/minecraft/client/renderer/entity/state/EntityRenderState;FLorg/joml/Vector3fc;Lorg/joml/Quaternionfc;Lorg/joml/Quaternionfc;IIII)V"), require = 0)
     private static void animateInventoryEntity(Args args) {
+        epsilon$scaleInventoryEntity(args);
+    }
+
+    @ModifyArgs(method = "renderEntityInInventoryFollowsAngle", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;entity(Lnet/minecraft/client/renderer/entity/state/EntityRenderState;FLorg/joml/Vector3fc;Lorg/joml/Quaternionfc;Lorg/joml/Quaternionfc;IIII)V"), require = 0)
+    private static void animateInventoryEntityNeoForge(Args args) {
+        epsilon$scaleInventoryEntity(args);
+    }
+
+    @Unique
+    private static void epsilon$scaleInventoryEntity(Args args) {
         float animationScale = GameAnimation.INSTANCE.getCurrentInventoryScale();
         if (animationScale >= 1.0f) return;
 

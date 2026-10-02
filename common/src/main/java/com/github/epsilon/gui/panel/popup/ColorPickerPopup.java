@@ -8,6 +8,7 @@ import com.github.epsilon.gui.theme.MD3Theme;
 import com.github.epsilon.settings.impl.ColorSetting;
 import com.github.epsilon.utils.render.animation.Animation;
 import com.github.epsilon.utils.render.animation.Easing;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
@@ -134,7 +135,7 @@ public class ColorPickerPopup implements PanelPopupHost.Popup {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean isDoubleClick) {
-        if (event.button() != 0 || !bounds.contains(event.x(), event.y())) {
+        if (event.button() != InputConstants.MOUSE_BUTTON_LEFT || !bounds.contains(event.x(), event.y())) {
             return false;
         }
         Channel[] channels = getChannels();
@@ -165,7 +166,7 @@ public class ColorPickerPopup implements PanelPopupHost.Popup {
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
-        if (event.button() == 0 && draggingChannel != null) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && draggingChannel != null) {
             commitPendingColor();
         }
         draggingChannel = null;
@@ -174,7 +175,7 @@ public class ColorPickerPopup implements PanelPopupHost.Popup {
 
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double mouseX, double mouseY) {
-        if (draggingChannel == null || event.button() != 0) {
+        if (draggingChannel == null || event.button() != InputConstants.MOUSE_BUTTON_LEFT) {
             return false;
         }
         int index = getChannelIndex(draggingChannel);
@@ -189,35 +190,35 @@ public class ColorPickerPopup implements PanelPopupHost.Popup {
             return false;
         }
         return switch (event.key()) {
-            case 257, 335 -> {
+            case InputConstants.KEY_RETURN, InputConstants.KEY_NUMPADENTER -> {
                 commitInput();
                 focusedChannel = null;
                 inputBuffer = null;
                 yield true;
             }
-            case 256 -> {
+            case InputConstants.KEY_ESCAPE -> {
                 focusedChannel = null;
                 inputBuffer = null;
                 yield true;
             }
-            case 259 -> {
+            case InputConstants.KEY_BACKSPACE -> {
                 if (inputBuffer != null && cursorIndex > 0) {
                     inputBuffer = inputBuffer.substring(0, cursorIndex - 1) + inputBuffer.substring(cursorIndex);
                     cursorIndex--;
                 }
                 yield true;
             }
-            case 261 -> {
+            case InputConstants.KEY_DELETE -> {
                 if (inputBuffer != null && cursorIndex < inputBuffer.length()) {
                     inputBuffer = inputBuffer.substring(0, cursorIndex) + inputBuffer.substring(cursorIndex + 1);
                 }
                 yield true;
             }
-            case 263 -> {
+            case InputConstants.KEY_LEFT -> {
                 cursorIndex = Math.max(0, cursorIndex - 1);
                 yield true;
             }
-            case 262 -> {
+            case InputConstants.KEY_RIGHT -> {
                 cursorIndex = Math.min(getDisplayBuffer().length(), cursorIndex + 1);
                 yield true;
             }

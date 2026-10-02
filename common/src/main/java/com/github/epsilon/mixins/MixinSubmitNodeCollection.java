@@ -5,8 +5,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.renderer.SubmitNodeCollection;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.feature.phase.FeatureRenderPhase;
 import net.minecraft.client.renderer.feature.phase.SimpleFeatureRenderPhase;
-import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
 import net.minecraft.client.renderer.feature.submit.SubmitNode;
 import net.minecraft.client.renderer.feature.submit.TranslucentSubmit;
 import org.spongepowered.asm.mixin.Final;
@@ -19,7 +19,7 @@ public abstract class MixinSubmitNodeCollection {
 
     @Shadow
     @Final
-    public SimpleFeatureRenderPhase alwaysOnTop;
+    public SimpleFeatureRenderPhase alwaysOnTopGizmos;
 
     @Shadow
     @Final
@@ -29,21 +29,32 @@ public abstract class MixinSubmitNodeCollection {
     @Final
     public SimpleFeatureRenderPhase translucentCustomGeometry;
 
+    @Shadow
+    @Final
+    public FeatureRenderPhase<? super TranslucentSubmit> translucentBlocksAndItems;
+
+    @Shadow
+    @Final
+    public FeatureRenderPhase<? super TranslucentSubmit> translucentModels;
+
     @WrapOperation(method = {"submitModel", "submitItem", "submitCustomGeometry"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/feature/phase/SimpleFeatureRenderPhase;submit(Lnet/minecraft/client/renderer/feature/submit/SubmitNode;)V"))
     private void submitChamsGeometry(SimpleFeatureRenderPhase phase, SubmitNode submit, Operation<Void> original) {
         Chams chams = Chams.INSTANCE;
         if ((phase == this.solid || phase == this.translucentCustomGeometry) && (chams.isSubmittingPlayer() || submit instanceof ModelFeatureRenderer.Submit<?> model && chams.isChamsRenderType(model.renderType()))) {
-            this.alwaysOnTop.submit(submit);
+            chams.markAlwaysOnTopSubmit();
+            this.alwaysOnTopGizmos.submit(submit);
         } else {
             original.call(phase, submit);
         }
     }
 
-    @WrapOperation(method = {"submitModel", "submitItem"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/feature/phase/TranslucentFeatureRenderPhase;submit(Lnet/minecraft/client/renderer/feature/submit/TranslucentSubmit;)V"))
-    private void submitChamsTranslucentGeometry(TranslucentFeatureRenderPhase phase, TranslucentSubmit submit, Operation<Void> original) {
+    @WrapOperation(method = {"submitModel", "submitItem"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/feature/phase/FeatureRenderPhase;submit(Lnet/minecraft/client/renderer/feature/submit/SubmitNode;)V"))
+    private void submitChamsTranslucentGeometry(FeatureRenderPhase<SubmitNode> phase, SubmitNode submit, Operation<Void> original) {
         Chams chams = Chams.INSTANCE;
-        if (chams.isSubmittingPlayer() || submit instanceof ModelFeatureRenderer.Submit<?> model && chams.isChamsRenderType(model.renderType())) {
-            this.alwaysOnTop.submit(submit);
+        boolean translucentPhase = (Object) phase == this.translucentModels || (Object) phase == this.translucentBlocksAndItems;
+        if (translucentPhase && (chams.isSubmittingPlayer() || submit instanceof ModelFeatureRenderer.Submit<?> model && chams.isChamsRenderType(model.renderType()))) {
+            chams.markAlwaysOnTopSubmit();
+            this.alwaysOnTopGizmos.submit(submit);
         } else {
             original.call(phase, submit);
         }

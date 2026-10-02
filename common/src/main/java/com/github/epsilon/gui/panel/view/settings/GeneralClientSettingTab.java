@@ -20,6 +20,7 @@ import com.github.epsilon.settings.SettingLayoutPlanner;
 import com.github.epsilon.settings.impl.KeybindSetting;
 import com.github.epsilon.utils.render.animation.Animation;
 import com.github.epsilon.utils.render.animation.Easing;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
@@ -134,7 +135,7 @@ public class GeneralClientSettingTab implements ClientSettingTabView {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean isDoubleClick) {
-        if (bounds == null || event.button() != 0) {
+        if (bounds == null || event.button() != InputConstants.MOUSE_BUTTON_LEFT) {
             return false;
         }
 
@@ -212,12 +213,12 @@ public class GeneralClientSettingTab implements ClientSettingTabView {
     public boolean keyPressed(KeyEvent event) {
         KeybindSetting listening = state.getListeningKeybindSetting();
         if (listening != null) {
-            if (event.key() == 256) {
+            if (event.key() == InputConstants.KEY_ESCAPE) {
                 state.setListeningKeybindSetting(null);
                 markDirty();
                 return true;
             }
-            if (event.key() == 259 || event.key() == 261) {
+            if (event.key() == InputConstants.KEY_BACKSPACE || event.key() == InputConstants.KEY_DELETE) {
                 listening.setValue(-1);
                 state.setListeningKeybindSetting(null);
                 markDirty();

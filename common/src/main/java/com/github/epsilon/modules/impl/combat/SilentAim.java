@@ -11,6 +11,7 @@ import com.github.epsilon.modules.Module;
 import com.github.epsilon.settings.impl.BoolSetting;
 import com.github.epsilon.settings.impl.DoubleSetting;
 import com.github.epsilon.settings.impl.IntSetting;
+import com.github.epsilon.utils.player.PlayerUtils;
 import com.github.epsilon.utils.rotation.Priority;
 import com.github.epsilon.utils.rotation.Rot2f;
 import com.github.epsilon.utils.rotation.RotationUtils;
@@ -54,7 +55,7 @@ public class SilentAim extends Module {
         HitResult hitResult = RotationManager.INSTANCE.getHitResult();
         if (hitResult != null && hitResult.getType() == HitResult.Type.ENTITY) {
             mc.gameMode.attack(mc.player, target);
-            mc.player.swing(InteractionHand.MAIN_HAND);
+            PlayerUtils.swingHand(InteractionHand.MAIN_HAND);
             redirecting = false;
         }
     }

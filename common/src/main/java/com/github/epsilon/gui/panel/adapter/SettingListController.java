@@ -13,12 +13,13 @@ import com.github.epsilon.settings.Setting;
 import com.github.epsilon.settings.SettingLayoutPlanner;
 import com.github.epsilon.utils.render.animation.Animation;
 import com.github.epsilon.utils.render.animation.Easing;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.input.PreeditEvent;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -194,7 +195,7 @@ public class SettingListController implements AutoCloseable {
     }
 
     public boolean mouseClicked(MouseButtonEvent event, boolean isDoubleClick, UiRect popupBounds, RowClickInterceptor interceptor) {
-        if (event.button() != 0) {
+        if (event.button() != InputConstants.MOUSE_BUTTON_LEFT) {
             return false;
         }
 
@@ -268,7 +269,7 @@ public class SettingListController implements AutoCloseable {
     }
 
     public boolean mouseDragged(MouseButtonEvent event, double mouseX, double mouseY) {
-        if (draggingSliderEntry == null || event.button() != 0) {
+        if (draggingSliderEntry == null || event.button() != InputConstants.MOUSE_BUTTON_LEFT) {
             return false;
         }
         if (draggingSliderEntry.row instanceof IntSettingRow intRow) {

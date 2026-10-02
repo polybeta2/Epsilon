@@ -9,13 +9,9 @@ import com.github.epsilon.modules.Category;
 import com.github.epsilon.modules.Module;
 import com.github.epsilon.settings.impl.*;
 import com.github.epsilon.utils.math.MathUtils;
-import com.mojang.blaze3d.pipeline.BlendFunction;
-import com.mojang.blaze3d.pipeline.ColorTargetState;
-import com.mojang.blaze3d.pipeline.DepthStencilState;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import com.mojang.renderpearl.api.pipeline.*;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.BlockPos;
@@ -298,8 +294,8 @@ public class Particles extends Module {
 
             poseStack.pushPose();
             poseStack.translate(position.x, position.y, position.z);
-            poseStack.mulPose(Axis.YP.rotationDegrees(-camera.yRot()));
-            poseStack.mulPose(Axis.XP.rotationDegrees(camera.xRot()));
+            poseStack.rotateDegrees(Axis.YP, -camera.yRot());
+            poseStack.rotateDegrees(Axis.XP, camera.xRot());
 
             Matrix4f matrix = poseStack.last().pose();
             int argb = particleColor.getRGB();

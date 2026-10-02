@@ -13,6 +13,7 @@ import com.github.epsilon.gui.theme.MD3Theme;
 import com.github.epsilon.settings.impl.EnumSetting;
 import com.github.epsilon.utils.render.animation.Animation;
 import com.github.epsilon.utils.render.animation.Easing;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 
@@ -146,7 +147,7 @@ public class EnumSelectPopup implements PanelPopupHost.Popup {
     @Override
     @SuppressWarnings({"rawtypes", "unchecked"})
     public boolean mouseClicked(MouseButtonEvent event, boolean isDoubleClick) {
-        if (!bounds.contains(event.x(), event.y()) || event.button() != 0) {
+        if (!bounds.contains(event.x(), event.y()) || event.button() != InputConstants.MOUSE_BUTTON_LEFT) {
             return false;
         }
         Enum[] modes = setting.getModes();

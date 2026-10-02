@@ -13,6 +13,7 @@ import com.github.epsilon.modules.impl.player.MultiTask;
 import com.github.epsilon.modules.impl.player.UseCooldown;
 import com.github.epsilon.modules.impl.render.FreeCamera;
 import com.github.epsilon.modules.impl.render.HandView;
+import com.github.epsilon.utils.player.PlayerUtils;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.sofurry.smtc.SmtcService;
@@ -139,7 +140,7 @@ public abstract class MixinMinecraft {
                 && mc.options.keyAttack.consumeClick()
                 && (!handView.onlyOnBlock.getValue() || mc.hitResult.getType() == HitResult.Type.BLOCK)
         ) {
-            mc.player.swing(InteractionHand.MAIN_HAND, false); // Use this method can swing client side.
+            PlayerUtils.swingHand(InteractionHand.MAIN_HAND);
         }
     }
 

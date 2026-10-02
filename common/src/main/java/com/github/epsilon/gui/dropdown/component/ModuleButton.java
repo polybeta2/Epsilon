@@ -16,11 +16,11 @@ import com.github.epsilon.settings.impl.*;
 import com.github.epsilon.utils.client.KeybindUtils;
 import com.github.epsilon.utils.render.animation.Animation;
 import com.github.epsilon.utils.render.animation.Easing;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.util.Mth;
 
 import java.awt.*;
-import java.util.*;
-import java.util.List;
+import java.util.Locale;
 
 public class ModuleButton extends Component {
 
@@ -226,25 +226,25 @@ public class ModuleButton extends Component {
                 return true;
             }
             if (isKeybindButtonHovered(mouseX, mouseY)) {
-                if (button == 0) {
+                if (button == InputConstants.MOUSE_BUTTON_LEFT) {
                     listeningKeybind = true;
                     DropdownScreen.INSTANCE.react(ReisaDropdownCompanion.Action.KEY_BIND);
                     return true;
                 }
-                if (button == 2) {
+                if (button == InputConstants.MOUSE_BUTTON_MIDDLE) {
                     module.setBindMode(module.getBindMode() == Module.BindMode.Toggle ? Module.BindMode.Hold : Module.BindMode.Toggle);
                     DropdownScreen.INSTANCE.react(ReisaDropdownCompanion.Action.KEY_BIND);
                     return true;
                 }
             }
-            if (button == 0) {
+            if (button == InputConstants.MOUSE_BUTTON_LEFT) {
                 module.toggle();
                 DropdownScreen.INSTANCE.react(module.isEnabled()
                         ? ReisaDropdownCompanion.Action.TOGGLE_ON
                         : ReisaDropdownCompanion.Action.TOGGLE_OFF);
                 return true;
             }
-            if (button == 1) {
+            if (button == InputConstants.MOUSE_BUTTON_RIGHT) {
                 if (sectionRenderer.isEmpty()) {
                     return true;
                 }
@@ -276,9 +276,11 @@ public class ModuleButton extends Component {
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (listeningKeybind) {
-            module.setKeyBind(keyCode == 256 || keyCode == 259 ? KeybindUtils.NONE : keyCode);
+            module.setKeyBind(keyCode == InputConstants.KEY_ESCAPE || keyCode == InputConstants.KEY_BACKSPACE
+                    ? KeybindUtils.NONE
+                    : keyCode);
             listeningKeybind = false;
-            DropdownScreen.INSTANCE.react(keyCode == 256
+            DropdownScreen.INSTANCE.react(keyCode == InputConstants.KEY_ESCAPE
                     ? ReisaDropdownCompanion.Action.CANCEL
                     : ReisaDropdownCompanion.Action.CONFIRM);
             return true;

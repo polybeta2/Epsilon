@@ -11,6 +11,7 @@ import com.github.epsilon.managers.sound.SoundManager;
 import com.github.epsilon.settings.Setting;
 import com.github.epsilon.utils.render.animation.Animation;
 import com.github.epsilon.utils.render.animation.Easing;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import java.awt.*;
 
@@ -78,7 +79,7 @@ public abstract class AbstractSetSettingWidget<S extends Setting<?>> extends Set
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button != 0 || !isFieldHovered(mouseX, mouseY)) return false;
+        if (button != InputConstants.MOUSE_BUTTON_LEFT || !isFieldHovered(mouseX, mouseY)) return false;
         openPopup();
         SoundManager.INSTANCE.playInUi(SoundKey.SETTINGS_OPEN);
         DropdownScreen.INSTANCE.react(ReisaDropdownCompanion.Action.PANEL_OPEN);

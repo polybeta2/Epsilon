@@ -20,6 +20,7 @@ import com.github.epsilon.managers.sound.SoundKey;
 import com.github.epsilon.managers.sound.SoundManager;
 import com.github.epsilon.modules.impl.ClientSetting;
 import com.github.epsilon.utils.render.animation.Easing;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
@@ -131,7 +132,7 @@ public class MainMenuScreen extends Screen {
             case Panel -> PanelScreen.INSTANCE;
             case Dropdown -> DropdownScreen.INSTANCE;
         })));
-        entries.add(new MenuEntry("Options", () -> minecraft.gui.setScreen(new OptionsScreen(this, minecraft.options, false))));
+        entries.add(new MenuEntry("Options", () -> minecraft.gui.setScreen(new OptionsScreen(this, minecraft.options))));
         entries.add(new MenuEntry("Quit", () -> {
             if (!requestShutdown()) minecraft.stop();
         }));
@@ -996,7 +997,7 @@ public class MainMenuScreen extends Screen {
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (reisaShutdownStartMs >= 0L) return true;
-        if (event.button() == 0) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
             MouseButtonEvent epsilonEvent = LuminRenderSystem.toEpsilonMouseEvent(event);
             int width = LuminRenderSystem.getScaledWidthInt();
             int height = LuminRenderSystem.getScaledHeightInt();

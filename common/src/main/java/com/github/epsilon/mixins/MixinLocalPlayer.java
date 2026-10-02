@@ -7,6 +7,7 @@ import com.github.epsilon.modules.impl.movement.MovementFix;
 import com.github.epsilon.modules.impl.movement.NoPacketSprint;
 import com.github.epsilon.modules.impl.movement.Velocity;
 import com.github.epsilon.modules.impl.player.InvManager;
+import com.github.epsilon.modules.impl.render.TotemAnimation;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -15,8 +16,8 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.ClientInput;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
@@ -84,10 +85,10 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
         EventBus.INSTANCE.post(new AfterSendPositionEvent());
     }
 
-    @Inject(method = "swing", at = @At("HEAD"), cancellable = true)
-    private void onSwing(InteractionHand hand, CallbackInfo ci) {
-        SwingHandEvent event = EventBus.INSTANCE.post(new SwingHandEvent());
-        if (event.isCancelled()) {
+    @Inject(method = "displayItemActivation(Lnet/minecraft/world/item/ItemStack;)V", at = @At("HEAD"), cancellable = true)
+    private void onDisplayItemActivation(ItemStack itemStack, CallbackInfo ci) {
+        if (TotemAnimation.INSTANCE.isEnabled()) {
+            TotemAnimation.INSTANCE.showFloatingItem(itemStack);
             ci.cancel();
         }
     }

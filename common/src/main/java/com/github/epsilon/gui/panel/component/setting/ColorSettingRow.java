@@ -6,6 +6,7 @@ import com.github.epsilon.gui.lib.UiTree;
 import com.github.epsilon.gui.panel.component.SettingRow;
 import com.github.epsilon.gui.theme.MD3Theme;
 import com.github.epsilon.settings.impl.ColorSetting;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 public class ColorSettingRow extends SettingRow<ColorSetting> {
@@ -34,7 +35,7 @@ public class ColorSettingRow extends SettingRow<ColorSetting> {
 
     @Override
     public boolean mouseClicked(UiRect bounds, net.minecraft.client.input.MouseButtonEvent event, boolean isDoubleClick) {
-        return event.button() == 0 && bounds.contains(event.x(), event.y());
+        return event.button() == InputConstants.MOUSE_BUTTON_LEFT && bounds.contains(event.x(), event.y());
     }
 
 }

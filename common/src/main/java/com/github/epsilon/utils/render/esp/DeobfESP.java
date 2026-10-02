@@ -4,13 +4,9 @@ import com.github.epsilon.assets.resources.ResourceLocationUtils;
 import com.github.epsilon.graphics.immediate.LuminImmediateRenderer;
 import com.github.epsilon.modules.impl.combat.killaura.KillAura;
 import com.github.epsilon.utils.render.animation.Easing;
-import com.mojang.blaze3d.pipeline.BlendFunction;
-import com.mojang.blaze3d.pipeline.ColorTargetState;
-import com.mojang.blaze3d.pipeline.DepthStencilState;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import com.mojang.renderpearl.api.pipeline.*;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
@@ -217,10 +213,10 @@ public class DeobfESP {
         Vec3 relative = anchor.subtract(camera.position());
         poseStack.pushPose();
         poseStack.translate(relative.x, relative.y, relative.z);
-        poseStack.mulPose(Axis.YP.rotationDegrees(-camera.yRot()));
-        poseStack.mulPose(Axis.XP.rotationDegrees(camera.xRot()));
+        poseStack.rotateDegrees(Axis.YP, -camera.yRot());
+        poseStack.rotateDegrees(Axis.XP, camera.xRot());
         poseStack.translate(offsetX, offsetY, 0.0f);
-        poseStack.mulPose(Axis.ZP.rotationDegrees(rotation));
+        poseStack.rotateDegrees(Axis.ZP, rotation);
 
         Matrix4f matrix = poseStack.last().pose();
         float halfWidth = drawWidth / 2.0f;

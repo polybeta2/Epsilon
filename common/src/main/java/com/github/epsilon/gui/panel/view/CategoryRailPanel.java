@@ -16,6 +16,7 @@ import com.github.epsilon.managers.sound.SoundManager;
 import com.github.epsilon.modules.Category;
 import com.github.epsilon.utils.render.animation.Animation;
 import com.github.epsilon.utils.render.animation.Easing;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 
@@ -183,7 +184,7 @@ public class CategoryRailPanel {
     }
 
     public boolean mouseClicked(MouseButtonEvent event, boolean isDoubleClick) {
-        if (bounds == null || event.button() != 0) {
+        if (bounds == null || event.button() != InputConstants.MOUSE_BUTTON_LEFT) {
             return false;
         }
         if (getMenuButtonBounds().contains(event.x(), event.y())) {

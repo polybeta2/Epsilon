@@ -23,7 +23,7 @@ public class MixinEntity {
 
     @Inject(method = "turn", at = @At("HEAD"), cancellable = true)
     private void updateTurn(double xo, double yo, CallbackInfo ci) {
-        if ((Object) this == mc.player) {
+        if ((Entity) (Object) this == mc.player) {
             FreeCamera freeCamera = FreeCamera.INSTANCE;
             if (freeCamera.isEnabled()) {
                 freeCamera.changeLookDirection(xo * 0.15, yo * 0.15);
@@ -33,12 +33,12 @@ public class MixinEntity {
     }
 
     @WrapOperation(method = "getViewVector", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;calculateViewVector(FF)Lnet/minecraft/world/phys/Vec3;"))
-    private Vec3 redirectGetViewYRot(Entity instance, float xRot, float yRot, Operation<Vec3> original) {
-        if (instance == mc.player) {
+    private Vec3 redirectGetViewYRot(float xRot, float yRot, Operation<Vec3> original) {
+        if ((Entity) (Object) this == mc.player) {
             RaytraceEvent event = EventBus.INSTANCE.post(new RaytraceEvent(yRot, xRot));
-            return original.call(instance, event.getPitch(), event.getYaw());
+            return original.call(event.getPitch(), event.getYaw());
         }
-        return original.call(instance, xRot, yRot);
+        return original.call(xRot, yRot);
     }
 
     @WrapOperation(method = "moveRelative", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getYRot()F"))

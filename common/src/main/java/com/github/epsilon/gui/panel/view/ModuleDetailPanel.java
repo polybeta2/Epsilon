@@ -24,6 +24,7 @@ import com.github.epsilon.settings.impl.KeybindSetting;
 import com.github.epsilon.utils.client.KeybindUtils;
 import com.github.epsilon.utils.render.animation.Animation;
 import com.github.epsilon.utils.render.animation.Easing;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
@@ -178,7 +179,7 @@ public class ModuleDetailPanel implements AutoCloseable {
             return true;
         }
 
-        if (event.button() != 0) {
+        if (event.button() != InputConstants.MOUSE_BUTTON_LEFT) {
             return false;
         }
 
@@ -275,12 +276,12 @@ public class ModuleDetailPanel implements AutoCloseable {
     public boolean keyPressed(KeyEvent event) {
         KeybindSetting listeningSetting = state.getListeningKeybindSetting();
         if (listeningSetting != null) {
-            if (event.key() == 256) {
+            if (event.key() == InputConstants.KEY_ESCAPE) {
                 state.setListeningKeybindSetting(null);
                 markDirty();
                 return true;
             }
-            if (event.key() == 259 || event.key() == 261) {
+            if (event.key() == InputConstants.KEY_BACKSPACE || event.key() == InputConstants.KEY_DELETE) {
                 listeningSetting.setValue(-1);
                 state.setListeningKeybindSetting(null);
                 markDirty();
@@ -293,12 +294,12 @@ public class ModuleDetailPanel implements AutoCloseable {
         }
         Module module = state.getSelectedModule();
         if (module != null && state.getListeningKeyBindModule() == module) {
-            if (event.key() == 256) {
+            if (event.key() == InputConstants.KEY_ESCAPE) {
                 state.setListeningKeyBindModule(null);
                 markDirty();
                 return true;
             }
-            if (event.key() == 259 || event.key() == 261) {
+            if (event.key() == InputConstants.KEY_BACKSPACE || event.key() == InputConstants.KEY_DELETE) {
                 module.setKeyBind(-1);
                 state.setListeningKeyBindModule(null);
                 markDirty();

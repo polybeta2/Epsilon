@@ -10,6 +10,7 @@ import com.github.epsilon.settings.impl.EnumSetting;
 import com.github.epsilon.settings.impl.IntSetting;
 import com.github.epsilon.utils.player.FindItemResult;
 import com.github.epsilon.utils.player.InvUtils;
+import com.github.epsilon.utils.player.PlayerUtils;
 import com.github.epsilon.utils.rotation.Priority;
 import com.github.epsilon.utils.rotation.Rot2f;
 import com.github.epsilon.utils.rotation.RotationUtils;
@@ -161,7 +162,7 @@ public class CrystalBlocker extends Module {
             }
 
             mc.gameMode.useItemOn(mc.player, InteractionHand.MAIN_HAND, bhr);
-            mc.player.swing(InteractionHand.MAIN_HAND);
+            PlayerUtils.swingHand(InteractionHand.MAIN_HAND);
 
             if (needSwitch) {
                 int backDelay = visibleSwapBackDelay.getValue();
@@ -176,7 +177,7 @@ public class CrystalBlocker extends Module {
         } else {
             InvUtils.invSwap(item.slot());
             mc.gameMode.useItemOn(mc.player, InteractionHand.MAIN_HAND, bhr);
-            mc.player.swing(InteractionHand.MAIN_HAND);
+            PlayerUtils.swingHand(InteractionHand.MAIN_HAND);
             InvUtils.invSwapBack();
         }
     }

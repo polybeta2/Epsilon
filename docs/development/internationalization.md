@@ -86,4 +86,6 @@ Fabric 通过 `ResourceLoader.registerReloadListener`、NeoForge 通过 `AddClie
 3. 人工填写新增翻译，确认 `en_us.json` 与 `zh_cn.json` 都是合法嵌套 object。
 4. 通过完整构建验证资源处理。
 
+注意：26.3 起的 `I18NFileGenerator` 只遍历本体 key、分类、静态 `EpsilonTranslations`
+以及已注册模块/HUD，不遍历其他来源的 setting；这部分 key 需要按约定手工维护。
 Key、`_value` 和叶节点类型的强制约束见 [`AGENTS.md`](../../AGENTS.md)。

@@ -8,6 +8,7 @@ import com.github.epsilon.gui.theme.MD3Theme;
 import com.github.epsilon.settings.impl.IntSetting;
 import com.github.epsilon.utils.render.animation.Animation;
 import com.github.epsilon.utils.render.animation.Easing;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
@@ -105,14 +106,14 @@ public class IntSettingRow extends SettingRow<IntSetting> {
     @Override
     public boolean mouseClicked(UiRect bounds, MouseButtonEvent event, boolean isDoubleClick) {
         UiRect fieldBounds = getFieldBounds(bounds);
-        if (event.button() == 0 && fieldBounds.contains(event.x(), event.y())) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && fieldBounds.contains(event.x(), event.y())) {
             dragging = false;
             focused = true;
             inputBuffer = formatPlainValue();
             cursorIndex = getCursorIndex(event.x(), fieldBounds);
             return true;
         }
-        if (event.button() != 0 || !getInteractiveBounds(bounds).contains(event.x(), event.y())) {
+        if (event.button() != InputConstants.MOUSE_BUTTON_LEFT || !getInteractiveBounds(bounds).contains(event.x(), event.y())) {
             return false;
         }
         focused = false;
@@ -123,7 +124,7 @@ public class IntSettingRow extends SettingRow<IntSetting> {
 
     @Override
     public boolean mouseReleased(UiRect bounds, MouseButtonEvent event) {
-        if (event.button() == 0 && dragging) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && dragging) {
             commitPendingValue();
             dragging = false;
             return true;
@@ -138,34 +139,34 @@ public class IntSettingRow extends SettingRow<IntSetting> {
             return false;
         }
         return switch (event.key()) {
-            case 257, 335 -> {
+            case InputConstants.KEY_RETURN, InputConstants.KEY_NUMPADENTER -> {
                 commitInput();
                 focused = false;
                 yield true;
             }
-            case 256 -> {
+            case InputConstants.KEY_ESCAPE -> {
                 focused = false;
                 inputBuffer = null;
                 yield true;
             }
-            case 259 -> {
+            case InputConstants.KEY_BACKSPACE -> {
                 if (inputBuffer != null && cursorIndex > 0) {
                     inputBuffer = inputBuffer.substring(0, cursorIndex - 1) + inputBuffer.substring(cursorIndex);
                     cursorIndex--;
                 }
                 yield true;
             }
-            case 261 -> {
+            case InputConstants.KEY_DELETE -> {
                 if (inputBuffer != null && cursorIndex < inputBuffer.length()) {
                     inputBuffer = inputBuffer.substring(0, cursorIndex) + inputBuffer.substring(cursorIndex + 1);
                 }
                 yield true;
             }
-            case 263 -> {
+            case InputConstants.KEY_LEFT -> {
                 cursorIndex = Math.max(0, cursorIndex - 1);
                 yield true;
             }
-            case 262 -> {
+            case InputConstants.KEY_RIGHT -> {
                 cursorIndex = Math.min(getDisplayBuffer().length(), cursorIndex + 1);
                 yield true;
             }

@@ -7,6 +7,7 @@ import com.github.epsilon.gui.lib.scene.UiLayer;
 import com.github.epsilon.gui.lib.scene.UiScene;
 import com.github.epsilon.gui.theme.EpsilonUiTheme;
 import com.github.epsilon.gui.theme.MD3Theme;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -150,7 +151,7 @@ public abstract class EpsilonDialogScreen extends Screen {
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         MouseButtonEvent epsilonEvent = LuminRenderSystem.toEpsilonMouseEvent(event);
-        if (epsilonEvent.button() == 0) {
+        if (epsilonEvent.button() == InputConstants.MOUSE_BUTTON_LEFT) {
             for (ButtonHit hit : buttonHits) {
                 if (hit.bounds().contains(epsilonEvent.x(), epsilonEvent.y())) {
                     hit.button().action().run();

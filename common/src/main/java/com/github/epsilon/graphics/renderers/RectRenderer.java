@@ -5,9 +5,9 @@ import com.github.epsilon.graphics.LuminRenderSystem;
 import com.github.epsilon.graphics.buffer.LuminRingBuffer;
 import com.github.epsilon.managers.RendererManager;
 import com.github.epsilon.utils.render.ScissorUtils;
-import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.commands.RenderPass;
 import net.minecraft.util.ARGB;
 import org.lwjgl.system.MemoryUtil;
 
@@ -118,7 +118,7 @@ public class RectRenderer implements IRenderer {
                 info.colorView(), Optional.empty(),
                 info.depthView(), OptionalDouble.empty())
         ) {
-            pass.setPipeline(LuminRenderPipelines.RECTANGLE);
+            pass.setPipeline(RenderSystem.getCompiledPipeline(LuminRenderPipelines.RECTANGLE));
             if (scissorEnabled) {
                 ScissorUtils.enableScissor(pass, scissorX, scissorY, scissorW, scissorH);
             }

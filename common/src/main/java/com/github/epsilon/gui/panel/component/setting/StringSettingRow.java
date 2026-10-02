@@ -72,7 +72,7 @@ public class StringSettingRow extends SettingRow<StringSetting> {
 
     @Override
     public boolean mouseClicked(UiRect bounds, MouseButtonEvent event, boolean isDoubleClick) {
-        if (event.button() != 0) {
+        if (event.button() != InputConstants.MOUSE_BUTTON_LEFT) {
             return false;
         }
         UiRect fieldBounds = getFieldBounds(bounds);
@@ -99,44 +99,44 @@ public class StringSettingRow extends SettingRow<StringSetting> {
             return handleControlShortcut(event.key());
         }
         return switch (event.key()) {
-            case 257, 335 -> {
+            case InputConstants.KEY_RETURN, InputConstants.KEY_NUMPADENTER -> {
                 commitInput();
                 focused = false;
                 IMEFocusHelper.deactivate();
                 clearSelection();
                 yield true;
             }
-            case 256 -> {
+            case InputConstants.KEY_ESCAPE -> {
                 focused = false;
                 IMEFocusHelper.deactivate();
                 inputBuffer = null;
                 clearSelection();
                 yield true;
             }
-            case 259 -> {
+            case InputConstants.KEY_BACKSPACE -> {
                 deleteBackward();
                 yield true;
             }
-            case 261 -> {
+            case InputConstants.KEY_DELETE -> {
                 deleteForward();
                 yield true;
             }
-            case 263 -> {
+            case InputConstants.KEY_LEFT -> {
                 cursorIndex = Math.max(0, cursorIndex - 1);
                 clearSelection();
                 yield true;
             }
-            case 262 -> {
+            case InputConstants.KEY_RIGHT -> {
                 cursorIndex = Math.min(getDisplayBuffer().length(), cursorIndex + 1);
                 clearSelection();
                 yield true;
             }
-            case 268 -> {
+            case InputConstants.KEY_HOME -> {
                 cursorIndex = 0;
                 clearSelection();
                 yield true;
             }
-            case 269 -> {
+            case InputConstants.KEY_END -> {
                 cursorIndex = getDisplayBuffer().length();
                 clearSelection();
                 yield true;
@@ -297,15 +297,15 @@ public class StringSettingRow extends SettingRow<StringSetting> {
 
     private boolean handleControlShortcut(int key) {
         return switch (key) {
-            case 65 -> {
+            case InputConstants.KEY_A -> {
                 selectAll();
                 yield true;
             }
-            case 67 -> {
+            case InputConstants.KEY_C -> {
                 copySelection();
                 yield true;
             }
-            case 86 -> {
+            case InputConstants.KEY_V -> {
                 pasteClipboard();
                 yield true;
             }
@@ -420,7 +420,7 @@ public class StringSettingRow extends SettingRow<StringSetting> {
     }
 
     private boolean isControlDown() {
-        return InputConstants.isKeyDown(mc.getWindow(), 341) || InputConstants.isKeyDown(mc.getWindow(), 345);
+        return InputConstants.isKeyDown(InputConstants.KEY_LCONTROL) || InputConstants.isKeyDown(InputConstants.KEY_RCONTROL);
     }
 
     private TextRenderer textMetrics() {

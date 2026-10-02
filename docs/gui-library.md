@@ -188,16 +188,18 @@ UiTree tree = UiTree.build(scope ->
 - Screen 移除或关闭时必须清空并释放 scene，不得跨帧复用未 flush 的命令。
 - renderer 初始化和绘制仍必须发生在 Minecraft 渲染线程。
 
-## Minecraft 26.2 集成
+## Minecraft 26.3 集成
 
 库本身不继承 Minecraft `Screen`，Screen 适配保留在应用层。当前实现已直接核对
-`common/build/moddev/artifacts/vanilla-26.2-*-sources.jar`：
+`common/build/moddev/artifacts/vanilla-26.3-*-sources.jar`：
 
 - `Screen.extractRenderState(GuiGraphicsExtractor, int, int, float)`；
 - `Screen.mouseClicked(MouseButtonEvent, boolean)`、`mouseReleased(MouseButtonEvent)`、
   `mouseDragged(MouseButtonEvent, double, double)`；
 - `GuiEventListener.mouseScrolled(double, double, double, double)`；
 - `KeyEvent`、`CharacterEvent`、`MouseButtonEvent`、`PreeditEvent` 位于 `net.minecraft.client.input`。
+- GUI 内判定按键必须比较 `event.key()` 与 `InputConstants.KEY_*`（SDL 扫描码），鼠标按键使用 SDL 编号；
+  旧版 GLFW 键码（`256`/`259` 等）在 26.3 已不再匹配，这类数值只允许出现在 `KeybindUtils` 的配置迁移表中。
 
 Minecraft 输入事件应由 Screen 转换或路由到具体 Panel/Dropdown 控件，不应进入 `gui/lib` 的公共 API。
 

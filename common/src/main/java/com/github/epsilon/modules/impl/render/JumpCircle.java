@@ -11,13 +11,9 @@ import com.github.epsilon.settings.impl.BoolSetting;
 import com.github.epsilon.settings.impl.DoubleSetting;
 import com.github.epsilon.settings.impl.EnumSetting;
 import com.github.epsilon.utils.timer.TimerUtils;
-import com.mojang.blaze3d.pipeline.BlendFunction;
-import com.mojang.blaze3d.pipeline.ColorTargetState;
-import com.mojang.blaze3d.pipeline.DepthStencilState;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import com.mojang.renderpearl.api.pipeline.*;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
@@ -121,8 +117,8 @@ public class JumpCircle extends Module {
 
         poseStack.pushPose();
         poseStack.translate(pos.x - camera.position().x, pos.y - camera.position().y, pos.z - camera.position().z);
-        poseStack.mulPose(Axis.XP.rotationDegrees(90.0f));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(sizeAnim * rotateSpeed.getValue().floatValue() * 1000.0f));
+        poseStack.rotateDegrees(Axis.XP, 90.0f);
+        poseStack.rotateDegrees(Axis.ZP, sizeAnim * rotateSpeed.getValue().floatValue() * 1000.0f);
 
         float scale = sizeAnim * 2.0f;
         Matrix4f matrix = poseStack.last().pose();

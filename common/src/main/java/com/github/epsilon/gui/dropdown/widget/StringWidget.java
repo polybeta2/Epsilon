@@ -6,6 +6,7 @@ import com.github.epsilon.gui.dropdown.ReisaDropdownCompanion;
 import com.github.epsilon.gui.lib.UiTextMetrics;
 import com.github.epsilon.gui.lib.UiTree;
 import com.github.epsilon.settings.impl.StringSetting;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import java.util.Objects;
 
@@ -49,7 +50,7 @@ public class StringWidget extends SettingWidget<StringSetting> {
         float fieldW = width - DropdownTheme.SETTING_PADDING_X * 2.0f;
         float fieldH = DropdownTheme.INPUT_HEIGHT;
 
-        if (button == 0 && isHovered(mouseX, mouseY, fieldX, fieldY, fieldW, fieldH)) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && isHovered(mouseX, mouseY, fieldX, fieldY, fieldW, fieldH)) {
             if (!inputField.isFocused()) {
                 inputField.setText(setting.getValue());
             }
@@ -68,13 +69,13 @@ public class StringWidget extends SettingWidget<StringSetting> {
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (!inputField.isFocused()) return false;
 
-        if (keyCode == 257 || keyCode == 335) {
+        if (keyCode == InputConstants.KEY_RETURN || keyCode == InputConstants.KEY_NUMPADENTER) {
             commitSetting();
             inputField.blur();
             DropdownScreen.INSTANCE.react(ReisaDropdownCompanion.Action.CONFIRM);
             return true;
         }
-        if (keyCode == 256) {
+        if (keyCode == InputConstants.KEY_ESCAPE) {
             inputField.setText(setting.getValue());
             inputField.blur();
             DropdownScreen.INSTANCE.react(ReisaDropdownCompanion.Action.CANCEL);

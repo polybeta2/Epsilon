@@ -12,13 +12,13 @@ import com.github.epsilon.modules.impl.movement.Scaffold;
 import com.github.epsilon.settings.impl.BoolSetting;
 import com.github.epsilon.settings.impl.DoubleSetting;
 import com.github.epsilon.settings.impl.IntSetting;
+import com.github.epsilon.utils.player.PlayerUtils;
 import com.github.epsilon.utils.rotation.Priority;
 import com.github.epsilon.utils.rotation.RaytraceUtils;
 import com.github.epsilon.utils.rotation.Rot2f;
 import com.github.epsilon.utils.rotation.RotationUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.protocol.game.ServerboundSwingPacket;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.block.BedBlock;
@@ -103,9 +103,7 @@ public class BedNuker extends Module {
         mc.gameMode.continueDestroyBlock(currentTarget, currentFace);
 
         if (swingHand.getValue()) {
-            mc.player.swing(InteractionHand.MAIN_HAND);
-        } else {
-            mc.getConnection().send(new ServerboundSwingPacket(InteractionHand.MAIN_HAND));
+            PlayerUtils.swingHand(InteractionHand.MAIN_HAND);
         }
 
         if (mc.level.getBlockState(currentTarget).isAir()) {

@@ -2,11 +2,8 @@ package com.github.epsilon.utils.client;
 
 import com.github.epsilon.assets.i18n.EpsilonTranslations;
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.KeyMapping;
-import org.lwjgl.glfw.GLFW;
-
-import static com.github.epsilon.Constants.mc;
+import org.lwjgl.sdl.SDLMouse;
 
 public class KeybindUtils {
 
@@ -27,7 +24,7 @@ public class KeybindUtils {
     }
 
     /**
-     * 将 GLFW 鼠标按键编号编码为 Epsilon 键位值。
+     * 将 SDL 鼠标按键编号编码为 Epsilon 键位值。
      *
      * @param button 点击按钮编号
      * @return 操作结果
@@ -37,7 +34,7 @@ public class KeybindUtils {
     }
 
     /**
-     * 从 Epsilon 键位值解码 GLFW 鼠标按键编号。
+     * 从 Epsilon 键位值解码 SDL 鼠标按键编号。
      *
      * @param keyBind Epsilon 键位编码值
      * @return 操作结果
@@ -76,11 +73,24 @@ public class KeybindUtils {
         if (keyBind == NONE) {
             return false;
         }
-        Window window = mc.getWindow();
         if (isMouseButton(keyBind)) {
-            return GLFW.glfwGetMouseButton(window.handle(), decodeMouseButton(keyBind)) == GLFW.GLFW_PRESS;
+            return isMouseButtonDown(decodeMouseButton(keyBind));
         }
-        return InputConstants.isKeyDown(window, keyBind);
+        return InputConstants.isKeyDown(keyBind);
+    }
+
+    /**
+     * 判断指定 SDL 鼠标按键当前是否按下。
+     *
+     * @param button SDL 鼠标按键编号，1 为左键
+     * @return 判断结果
+     */
+    private static boolean isMouseButtonDown(int button) {
+        if (button < InputConstants.MOUSE_BUTTON_LEFT || button > InputConstants.MOUSE_BUTTON_8) {
+            return false;
+        }
+        int state = SDLMouse.SDL_GetMouseState(null, null);
+        return (state & (1 << (button - 1))) != 0;
     }
 
     /**
@@ -96,7 +106,7 @@ public class KeybindUtils {
         if (isMouseButton(keyBind)) {
             return "Mouse " + (decodeMouseButton(keyBind) + 1);
         }
-        return InputConstants.Type.KEYSYM.getOrCreate(keyBind).getDisplayName().getString();
+        return InputConstants.Type.KEYBOARD.getOrCreate(keyBind).getDisplayName().getString();
     }
 
 }

@@ -8,6 +8,7 @@ import com.github.epsilon.gui.theme.MD3Theme;
 import com.github.epsilon.settings.impl.ButtonSetting;
 import com.github.epsilon.utils.render.animation.Animation;
 import com.github.epsilon.utils.render.animation.Easing;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 
@@ -34,7 +35,7 @@ public class ButtonSettingRow extends SettingRow<ButtonSetting> {
 
     @Override
     public boolean mouseClicked(UiRect bounds, MouseButtonEvent event, boolean isDoubleClick) {
-        if (!bounds.contains(event.x(), event.y()) || event.button() != 0) {
+        if (!bounds.contains(event.x(), event.y()) || event.button() != InputConstants.MOUSE_BUTTON_LEFT) {
             return false;
         }
         setting.getValue().run();

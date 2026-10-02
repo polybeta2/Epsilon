@@ -28,7 +28,6 @@ import com.github.epsilon.utils.rotation.RotationUtils;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
-import net.minecraft.network.protocol.game.ServerboundSwingPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -134,7 +133,7 @@ public class KillAura extends Module {
     final BoolSetting others = boolSetting("Others", false);
     final BoolSetting invisible = boolSetting("Invisible", true);
 
-    private final BoolSetting swingHand = boolSetting("SwingHand", true);
+    private final BoolSetting swingHand = boolSetting("Swing Hand", true);
     private final BoolSetting esp = boolSetting("ESP", true);
     private final EnumSetting<ESPMode> espMode = enumSetting("ESP Mode", ESPMode.Circle, esp::getValue);
     public final EnumSetting<DeobfESP.TextureMode> deobfMode = enumSetting("Deobf Mode", DeobfESP.TextureMode.Mengcha, () -> esp.getValue() && espMode.is(ESPMode.Deobf));
@@ -295,9 +294,7 @@ public class KillAura extends Module {
                 if (espMode.is(ESPMode.Deobf)) DeobfESP.markHit(attackEntity);
 
                 if (swingHand.getValue()) {
-                    mc.player.swing(InteractionHand.MAIN_HAND);
-                } else {
-                    mc.getConnection().send(new ServerboundSwingPacket(InteractionHand.MAIN_HAND));
+                    PlayerUtils.swingHand(InteractionHand.MAIN_HAND);
                 }
 
                 // NextHit：命中后结束本轮消费，剩余预算留到下一 tick

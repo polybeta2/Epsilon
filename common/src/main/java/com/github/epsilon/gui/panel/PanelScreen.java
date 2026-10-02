@@ -17,6 +17,7 @@ import com.github.epsilon.gui.theme.EpsilonUiTheme;
 import com.github.epsilon.gui.theme.MD3Theme;
 import com.github.epsilon.managers.TranslationManager;
 import com.github.epsilon.modules.impl.ClientSetting;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.IMEPreeditOverlay;
 import net.minecraft.client.gui.screens.Screen;
@@ -229,7 +230,7 @@ public class PanelScreen extends Screen {
         MouseButtonEvent epsilonEvent = LuminRenderSystem.toEpsilonMouseEvent(event);
         double mouseX = epsilonEvent.x();
         double mouseY = epsilonEvent.y();
-        if (event.button() != 0) {
+        if (event.button() != InputConstants.MOUSE_BUTTON_LEFT) {
             if (state.getListeningKeyBindModule() != null && moduleDetailPanel.mouseClicked(epsilonEvent, isDoubleClick)) {
                 dirtyState.markAllDirty();
                 return true;
@@ -318,7 +319,7 @@ public class PanelScreen extends Screen {
             dirtyState.markAllDirty();
             return true;
         }
-        if (event.key() == 256) {
+        if (event.key() == InputConstants.KEY_ESCAPE) {
             onClose();
             return true;
         }

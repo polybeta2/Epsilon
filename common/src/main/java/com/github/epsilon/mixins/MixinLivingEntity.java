@@ -1,10 +1,7 @@
 package com.github.epsilon.mixins;
 
 import com.github.epsilon.events.bus.EventBus;
-import com.github.epsilon.events.impl.FallFlyingEvent;
-import com.github.epsilon.events.impl.FallFlyingMovementEvent;
-import com.github.epsilon.events.impl.JumpEvent;
-import com.github.epsilon.events.impl.RotationAnimationEvent;
+import com.github.epsilon.events.impl.*;
 import com.github.epsilon.modules.impl.player.InvManager;
 import com.github.epsilon.modules.impl.player.JumpCooldown;
 import com.github.epsilon.modules.impl.render.HandView;
@@ -13,8 +10,10 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.world.phys.Vec3;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
@@ -92,11 +91,21 @@ public class MixinLivingEntity {
         original.call(instance, newValue);
     }
 
-    @Inject(method = "getCurrentSwingDuration", at = @At("HEAD"), cancellable = true)
-    private void hookGetCurrentSwingDuration(CallbackInfoReturnable<Integer> cir) {
+    @Inject(method = "getModifiedSwingDuration(Lnet/minecraft/world/item/component/SwingAnimation;)I", at = @At("HEAD"), cancellable = true)
+    private void hookGetModifiedSwingDuration(SwingAnimation animation, CallbackInfoReturnable<Integer> cir) {
         HandView handView = HandView.INSTANCE;
         if ((LivingEntity) (Object) this == mc.player && handView.isEnabled() && handView.modifySwingDuration.getValue()) {
             cir.setReturnValue(handView.swingDuration.getValue());
+        }
+    }
+
+    @Inject(method = "swing(Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/item/component/SwingAnimation;Z)Z", at = @At("HEAD"), cancellable = true)
+    private void onSwing(InteractionHand hand, SwingAnimation animation, boolean sendToSwingingEntity, CallbackInfoReturnable<Boolean> cir) {
+        if ((Object) this == mc.player) {
+            SwingHandEvent event = EventBus.INSTANCE.post(new SwingHandEvent());
+            if (event.isCancelled()) {
+                cir.setReturnValue(false);
+            }
         }
     }
 

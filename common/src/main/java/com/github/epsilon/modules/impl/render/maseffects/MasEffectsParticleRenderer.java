@@ -2,12 +2,8 @@ package com.github.epsilon.modules.impl.render.maseffects;
 
 import com.github.epsilon.assets.resources.ResourceLocationUtils;
 import com.github.epsilon.graphics.immediate.LuminImmediateRenderer;
-import com.mojang.blaze3d.pipeline.BlendFunction;
-import com.mojang.blaze3d.pipeline.ColorTargetState;
-import com.mojang.blaze3d.pipeline.DepthStencilState;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.renderpearl.api.pipeline.*;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
@@ -341,7 +337,7 @@ public class MasEffectsParticleRenderer {
 
             poseStack.pushPose();
             poseStack.translate(renderX, renderY, renderZ);
-            poseStack.mulPose(rotation);
+            poseStack.rotate(rotation);
 
             Matrix4f matrix = poseStack.last().pose();
             float halfSize = size;

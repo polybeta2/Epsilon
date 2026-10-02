@@ -8,6 +8,7 @@ import com.github.epsilon.gui.lib.UiTree;
 import com.github.epsilon.settings.impl.ButtonSetting;
 import com.github.epsilon.utils.render.animation.Animation;
 import com.github.epsilon.utils.render.animation.Easing;
+import com.mojang.blaze3d.platform.InputConstants;
 
 public class ButtonWidget extends SettingWidget<ButtonSetting> {
 
@@ -42,7 +43,7 @@ public class ButtonWidget extends SettingWidget<ButtonSetting> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button != 0) return false;
+        if (button != InputConstants.MOUSE_BUTTON_LEFT) return false;
 
         float btnX = absoluteX(DropdownTheme.SETTING_PADDING_X);
         float btnY = absoluteY(1.0f);

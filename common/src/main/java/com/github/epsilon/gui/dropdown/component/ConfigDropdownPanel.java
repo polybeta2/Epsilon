@@ -8,6 +8,7 @@ import com.github.epsilon.gui.lib.UiTree;
 import com.github.epsilon.gui.theme.MD3Theme;
 import com.github.epsilon.managers.ConfigManager;
 import com.github.epsilon.utils.client.ConfigFolderOpener;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import java.util.List;
 import java.util.Objects;
@@ -103,7 +104,7 @@ public class ConfigDropdownPanel extends AbstractDropdownPanel {
 
     @Override
     protected boolean mouseClickedContent(double mouseX, double mouseY, int button) {
-        if (button != 0) return false;
+        if (button != InputConstants.MOUSE_BUTTON_LEFT) return false;
         float currentY = y + DropdownTheme.PANEL_HEADER_HEIGHT + PADDING - scroll;
         float contentX = x + PADDING;
         float contentW = width - PADDING * 2.0f;
@@ -157,7 +158,7 @@ public class ConfigDropdownPanel extends AbstractDropdownPanel {
 
     @Override
     public void onGlobalMouseClicked(double mouseX, double mouseY, int button) {
-        if (button != 0) return;
+        if (button != InputConstants.MOUSE_BUTTON_LEFT) return;
         float fieldX = x + PADDING;
         float fieldY = y + DropdownTheme.PANEL_HEADER_HEIGHT + PADDING - scroll;
         float fieldW = width - PADDING * 2.0f;
@@ -214,7 +215,7 @@ public class ConfigDropdownPanel extends AbstractDropdownPanel {
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (!inputField.isFocused()) return false;
-        if (keyCode == 256) {
+        if (keyCode == InputConstants.KEY_ESCAPE) {
             inputField.blur();
             return true;
         }

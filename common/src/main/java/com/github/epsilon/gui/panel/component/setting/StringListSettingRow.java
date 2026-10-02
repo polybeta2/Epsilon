@@ -10,6 +10,7 @@ import com.github.epsilon.gui.panel.component.PanelElements;
 import com.github.epsilon.gui.panel.component.SettingRow;
 import com.github.epsilon.gui.theme.MD3Theme;
 import com.github.epsilon.settings.impl.StringListSetting;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 
@@ -37,7 +38,7 @@ public class StringListSettingRow extends SettingRow<StringListSetting> {
 
     @Override
     public boolean mouseClicked(UiRect bounds, MouseButtonEvent event, boolean isDoubleClick) {
-        return bounds.contains(event.x(), event.y()) && event.button() == 0;
+        return bounds.contains(event.x(), event.y()) && event.button() == InputConstants.MOUSE_BUTTON_LEFT;
     }
 
 }

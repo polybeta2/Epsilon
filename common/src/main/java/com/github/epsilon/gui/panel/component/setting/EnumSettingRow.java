@@ -9,6 +9,7 @@ import com.github.epsilon.gui.theme.MD3Theme;
 import com.github.epsilon.settings.impl.EnumSetting;
 import com.github.epsilon.utils.render.animation.Animation;
 import com.github.epsilon.utils.render.animation.Easing;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 
@@ -63,7 +64,7 @@ public class EnumSettingRow extends SettingRow<EnumSetting<?>> {
 
     @Override
     public boolean mouseClicked(UiRect bounds, MouseButtonEvent event, boolean isDoubleClick) {
-        return bounds.contains(event.x(), event.y()) && event.button() == 0;
+        return bounds.contains(event.x(), event.y()) && event.button() == InputConstants.MOUSE_BUTTON_LEFT;
     }
 
 }
